@@ -1,0 +1,38 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Royaltea Bar · Wayfair Town</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Cinzel:wght@600;800&family=Alegreya+Sans:wght@400;500;700&display=swap" rel="stylesheet">
+<script src="nav.js" defer></script>
+<style>
+:root{color-scheme:dark;
+--bg:#07070d;--panel:#13122a;--panel2:#1b1940;--ink:#e9e7f7;--mute:#9b97c4;--rule:#29265a;
+--blue:#5aa9ff;--purple:#a78bfa;--green:#3ddc97}
+*{box-sizing:border-box;min-width:0}
+body{margin:0;min-height:100vh;background:var(--bg);color:var(--ink);font:16px/1.5 "Alegreya Sans",system-ui,sans-serif;overflow-x:clip}
+header{padding:clamp(20px,3vw,40px) max(4vw,14px);background:radial-gradient(ellipse at 15% 0%,#1a1f5a 0,transparent 60%),radial-gradient(ellipse at 90% 10%,#2a1452 0,transparent 55%)}
+.wrap{max-width:1000px;margin:0 auto}
+h1{font:800 clamp(28px,4.4vw,42px)/1.05 Cinzel,serif;margin:0 0 6px;text-wrap:balance;color:var(--purple);background:linear-gradient(90deg,var(--blue),var(--purple) 55%,var(--green));-webkit-background-clip:text;background-clip:text;-webkit-text-fill-color:transparent}
+.sub{color:var(--mute);margin:0}
+main{padding:8px max(4vw,14px) 48px}
+.card{display:block;background:var(--panel);border:1px solid var(--rule);border-radius:14px;padding:18px 20px;color:var(--ink);text-decoration:none}
+a.card:hover{border-color:var(--purple)}a.card:focus-visible{outline:2px solid var(--green);outline-offset:2px}
+.card h2{font:600 19px Cinzel,serif;margin:0 0 4px;color:var(--purple)}.card p{margin:0;color:var(--mute)}
+.grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(220px,1fr));gap:12px}
+.tag{display:inline-block;margin-left:8px;font:500 12px "Alegreya Sans",sans-serif;color:var(--green);border:1px solid var(--green);border-radius:99px;padding:0 8px;vertical-align:middle}
+.tag.soon{color:var(--mute);border-color:var(--rule)}
+</style>
+</head>
+<body>
+<header><div class="wrap">
+  <h1>Royaltea Bar</h1>
+  <p class="sub">The town’s tea house.</p>
+</div></header>
+<main><div class="wrap">
+  <div class="card"><h2>Coming soon</h2><p>This page hasn’t been built yet.</p></div>
+</div></main>
+</body>
+</html>
