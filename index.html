@@ -1,0 +1,266 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Quartermaster Inventory</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Cinzel:wght@600;800&family=Alegreya+Sans:wght@400;500;700&display=swap" rel="stylesheet">
+<style>
+/* VOICE: a camp quartermaster's working ledger, practical with a little ceremony
+   IDEA: the stock book kept in a supply wagon, one ruled line per good
+   PICTURE: the ledger itself, under a strip of category tallies
+   COLOUR and TYPE: wine-dark ground, bone ink, verdigris accent; Cinzel + Alegreya Sans
+   LAYOUT: modest title, tally strip, sticky tools, ruled list grouped by category */
+:root{color-scheme:light dark;
+--bg:light-dark(#f7eff1,#22111b);--panel:light-dark(#fffafb,#2e1824);--ink:light-dark(#2a1420,#f1e9e2);
+--mute:light-dark(#7a5e6a,#b9a2ac);--rule:light-dark(#e6d3da,#43283a);--acc:light-dark(#1d7564,#5cc3ab);
+--accink:light-dark(#fff,#0f2a24);--warn:light-dark(#a8323e,#ff8d8d)}
+:root[data-theme=light]{color-scheme:light}:root[data-theme=dark]{color-scheme:dark}
+*{box-sizing:border-box;min-width:0}
+body{margin:0;background:var(--bg);color:var(--ink);font:16px/1.5 "Alegreya Sans",system-ui,sans-serif;overflow-x:clip}
+.band{padding:clamp(20px,3vw,40px) max(4vw,14px)}
+.wrap{max-width:1100px;margin:0 auto}
+h1{font:800 clamp(28px,4.4vw,42px)/1.05 Cinzel,serif;margin:0 0 6px;text-wrap:balance}
+.sub{color:var(--mute);margin:0}
+.tally{display:grid;grid-template-columns:repeat(auto-fill,minmax(140px,1fr));gap:8px;margin-top:18px}
+.tally button{all:unset;cursor:pointer;background:var(--panel);border:1px solid var(--rule);border-radius:10px;padding:10px 12px;min-height:44px}
+.tally button:focus-visible{outline:2px solid var(--acc);outline-offset:2px}
+.tally button[aria-pressed=true]{border-color:var(--acc);box-shadow:inset 0 0 0 1px var(--acc)}
+.tally b{display:block;font:700 22px/1.1 Cinzel,serif}.tally span{font-size:13px;color:var(--mute)}
+.tools{position:sticky;top:0;z-index:5;background:var(--bg);border-bottom:1px solid var(--rule);padding:10px max(4vw,14px)}
+.tools .wrap{display:flex;flex-wrap:wrap;gap:8px;align-items:center}
+input,select,.btn{font:inherit;font-size:16px;min-height:44px;border-radius:9px;border:1px solid var(--rule);background:var(--panel);color:var(--ink);padding:0 12px}
+input:focus-visible,select:focus-visible,.btn:focus-visible{outline:2px solid var(--acc);outline-offset:1px}
+#q{flex:1 1 220px}
+.btn{cursor:pointer;font-weight:500}.btn.pri{background:var(--acc);color:var(--accink);border-color:var(--acc)}
+.btn:disabled{opacity:.45;cursor:default}
+label.chk{display:flex;gap:6px;align-items:center;min-height:44px;cursor:pointer}
+label.chk input{min-height:0;width:18px;height:18px;accent-color:var(--acc)}
+.grp h2{font:600 18px/1.2 Cinzel,serif;margin:26px 0 6px;display:flex;justify-content:space-between;gap:10px;border-bottom:2px solid var(--ink);padding-bottom:6px}
+.grp h2 small{font:500 14px "Alegreya Sans",sans-serif;color:var(--mute)}
+.row{display:grid;grid-template-columns:minmax(0,1fr) auto;gap:10px;align-items:center;padding:6px 2px;border-bottom:1px solid var(--rule)}
+.row.zero .nm{color:var(--mute)}
+.nm{font-weight:500}.nm em{font-style:normal;font-size:13px;color:var(--acc);margin-left:6px}
+.qty{display:flex;align-items:center;gap:4px}
+.qty button{width:44px;height:44px;border-radius:9px;border:1px solid var(--rule);background:var(--panel);color:var(--ink);font-size:20px;cursor:pointer;line-height:1}
+.qty button:focus-visible{outline:2px solid var(--acc)}
+.qty input{width:68px;text-align:right;padding:0 8px;font-variant-numeric:tabular-nums;font-weight:700}
+.del{color:var(--warn)!important;font-size:15px!important}
+.empty{padding:40px 0;color:var(--mute);text-align:center}
+.status{font-size:13px;color:var(--mute);margin-left:auto}
+dialog{border:1px solid var(--rule);border-radius:14px;background:var(--panel);color:var(--ink);max-width:min(560px,92vw);width:100%}
+dialog::backdrop{background:#0008}
+dialog h3{font:600 20px Cinzel,serif;margin:0 0 12px}
+dialog form{display:grid;gap:10px}dialog label{display:grid;gap:4px;font-weight:500}
+textarea{font:14px/1.4 ui-monospace,monospace;width:100%;min-height:220px;border-radius:9px;border:1px solid var(--rule);background:var(--bg);color:var(--ink);padding:10px}
+.drow{display:flex;gap:8px;justify-content:flex-end;flex-wrap:wrap}
+.flash{animation:fl .5s}@keyframes fl{from{background:color-mix(in srgb,var(--acc) 25%,transparent)}}
+@media(prefers-reduced-motion:reduce){.flash{animation:none}}
+@media(max-width:600px){.status{margin-left:0;width:100%}.qty button{width:40px}.qty input{width:58px}}
+</style>
+</head>
+<body>
+<header class="band"><div class="wrap">
+  <h1>Quartermaster's Inventory</h1>
+  <p class="sub" id="sum">Loading the ledger…</p>
+  <div class="tally" id="tally"></div>
+</div></header>
+
+<div class="tools"><div class="wrap">
+  <input id="q" type="search" placeholder="Search items…" aria-label="Search items">
+  <select id="sort" aria-label="Sort">
+    <option value="cat">Group by category</option>
+    <option value="az">A–Z</option>
+    <option value="qty">Most stocked</option>
+  </select>
+  <label class="chk"><input type="checkbox" id="stock"> In stock only</label>
+  <button class="btn" id="undo" disabled>Undo</button>
+  <button class="btn" id="addBtn">Add item</button>
+  <button class="btn" id="expBtn">Export</button>
+  <button class="btn" id="ghBtn">Sync settings</button>
+  <span class="status" id="status"></span>
+</div></div>
+
+<main class="band" style="padding-top:8px"><div class="wrap" id="list"></div></main>
+
+<dialog id="addDlg"><form id="addForm">
+  <h3>Add an item</h3>
+  <input id="newName" placeholder="Item name" required aria-label="Item name">
+  <select id="newCat" aria-label="Category"></select>
+  <input id="newQty" type="number" min="0" value="1" aria-label="Starting quantity">
+  <div class="drow"><button type="button" class="btn" data-close>Cancel</button><button class="btn pri">Add</button></div>
+</form></dialog>
+
+<dialog id="expDlg"><form>
+  <h3>Export / import</h3>
+  <p class="sub" style="margin:0">One item per line: <code>Name, Category, Qty</code>. Edit and press Import to replace counts.</p>
+  <textarea id="expText" aria-label="Inventory as text"></textarea>
+  <div class="drow">
+    <button type="button" class="btn" data-close>Close</button>
+    <button type="button" class="btn" id="copyBtn">Copy</button>
+    <button type="button" class="btn pri" id="impBtn">Import</button>
+  </div>
+</form></dialog>
+
+<dialog id="ghDlg"><form id="ghForm">
+  <h3>GitHub sync</h3>
+  <p class="sub" style="margin:0">Counts are saved to <code>inventory.json</code> in your repository. The token stays in this browser only.</p>
+  <label>Your GitHub username<input id="ghOwner" required autocomplete="off" autocapitalize="off" style="width:100%"></label>
+  <label>Repository name<input id="ghRepo" required autocomplete="off" autocapitalize="off" style="width:100%"></label>
+  <label>Access token<input id="ghToken" type="password" required autocomplete="off" style="width:100%" placeholder="github_pat_…"></label>
+  <p class="sub" id="ghMsg" style="margin:0"></p>
+  <div class="drow">
+    <button type="button" class="btn" id="ghOff">Disconnect</button>
+    <button type="button" class="btn" data-close>Cancel</button>
+    <button class="btn pri">Connect</button>
+  </div>
+</form></dialog>
+
+<script>
+{
+const CATS=["Weapon/Tool/Armor","Animal/Fleshy/Bone","Sealife","Bug","Plant","Metal/Stone","Gems","Money","Potions/Poison/Oils","Scroll","Item of Quality","Misc"];
+const SEED={
+"Weapon/Tool/Armor":["Archery Weapon","Armor - Heavy","Armor - Light","Armor - Moderate","Fishing Rod","One Handed Weapon","One Handed Weapon - Small","Pickaxe","Shield","Throwing Weapon","Two Handed Weapon"],
+"Animal/Fleshy/Bone":["Bat Fat","Bat Hide","Bat Meat","Bones","Cockatrice Feather","Dark Elf Fat","Dark Elf Meat","Dark Elf Skin","Deep Gnome Hide","Deep Gnome Fat","Deep Gnome Meat","Giant Fat","Giant Hide","Giant Meat","Human Skin","Human Teeth","Nekros Bones","Shadow Elf Skin","Shadow Elf Fat","Shadow Elf Meat","Spider Fat","Spider Meat","Troll Fat","Troll Hide","Troll Meat"],
+"Sealife":["Blue Bass","Green Bass","Blue Fish","Green Fish","Crab","Drezzil Fish","Large fish","Little Fish","Minnow"],
+"Bug":["Maggot","Small Spider","Spider Silk","Worm"],
+"Plant":["Green Plant","Green Plant Seed","Purple Flowers","Seaweed","Sunflower","Wheat","Wheat Seed","Wood","Green Flower","Wheat Flower"],
+"Metal/Stone":["Copper Ore","Gold Ore","Iron Ore","Silver Ore"],
+"Gems":["Blue Gem","Clear Gem","Green Gem","Purple Gem","Red Gem","Yellow Gem"],
+"Money":["Gold","Silver","Jade"],
+"Potions/Poison/Oils":["Cure Minor","Cure Mortal","Flaming Oil","Limited Restoration","Oil","Ruggedness Potion","Silver Oils","Spell Guard Potion","Poison 20","Poison 50"],
+"Scroll":["Enchanted Weapon Scroll"],
+"Item of Quality":["Ravenger Holy Symbol #0522 (blue markings)","Scrying Mirror #0995","Yellow Gem Socketed Ring","Silver Necklace"],
+"Misc":["Black Spider Flowers","Death Token","Holy Water","Wax","Evil Mirror","Manacles"]
+};
+const base=[];for(const c of CATS)for(const n of SEED[c])base.push({n,c});
+const baseNames=new Set(base.map(i=>i.n));
+let state={counts:{},custom:[]};
+const hist=[];let saveT=null;
+const $=s=>document.querySelector(s);
+const esc=s=>String(s).replace(/[&<>"']/g,m=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[m]));
+const items=()=>base.concat(state.custom.map(i=>CATS.includes(i.c)?i:{n:i.n,c:"Misc"}));
+const qty=n=>state.counts[n]||0;
+const status=t=>{$("#status").textContent=t};
+
+function loadLocal(){try{const s=JSON.parse(localStorage.getItem("qm-inv")||"null");if(s&&s.counts)state={counts:s.counts,custom:s.custom||[]}}catch(e){}}
+let gh=null,sha=null,busy=false,dirty=false,lastRemote="";
+try{gh=JSON.parse(localStorage.getItem("qm-gh")||"null")}catch(e){}
+const enc=str=>btoa(String.fromCharCode(...new TextEncoder().encode(str)));
+const dec=b=>new TextDecoder().decode(Uint8Array.from(atob(b.replace(/\s/g,"")),c=>c.charCodeAt(0)));
+const api=(opt={})=>fetch(`https://api.github.com/repos/${encodeURIComponent(gh.owner)}/${encodeURIComponent(gh.repo)}/contents/inventory.json`+(opt.method?"":`?t=${Date.now()}`),
+  {...opt,cache:"no-store",headers:{Authorization:`Bearer ${gh.token}`,Accept:"application/vnd.github+json","X-GitHub-Api-Version":"2022-11-28",...(opt.headers||{})}});
+async function pull(force){
+  if(!gh||busy||(dirty&&!force))return;
+  try{
+    const r=await api();
+    if(r.status===404){sha=null;status("Connected · no saved file yet");if(Object.keys(state.counts).length||state.custom.length){dirty=true;push()}return}
+    if(!r.ok)throw r;
+    const j=await r.json();sha=j.sha;const txt=dec(j.content);
+    if(txt!==lastRemote){lastRemote=txt;const d=JSON.parse(txt);state={counts:d.counts||{},custom:d.custom||[]};
+      try{localStorage.setItem("qm-inv",JSON.stringify(state))}catch(e){}render()}
+    status("Synced with GitHub");
+  }catch(e){status(e&&e.status===401?"GitHub token rejected — check Sync settings":"Offline · saved in this browser")}
+}
+async function push(){
+  if(!gh)return;if(busy){dirty=true;return}
+  busy=true;dirty=false;status("Saving to GitHub…");
+  const txt=JSON.stringify({counts:state.counts,custom:state.custom},null,1);
+  try{
+    let r=await api({method:"PUT",body:JSON.stringify({message:"Update inventory",content:enc(txt),...(sha?{sha}:{})})});
+    if(r.status===409||r.status===422){const g=await api();if(g.ok){sha=(await g.json()).sha;
+      r=await api({method:"PUT",body:JSON.stringify({message:"Update inventory",content:enc(txt),sha})})}}
+    if(!r.ok)throw r;
+    sha=(await r.json()).content.sha;lastRemote=txt;status("Synced with GitHub");
+  }catch(e){dirty=true;status(e&&e.status===401?"GitHub token rejected — check Sync settings":e&&e.status===403?"Token can't write — check its permissions":"Couldn't reach GitHub · will retry")}
+  busy=false;if(dirty)setTimeout(push,3000);
+}
+function save(){
+  try{localStorage.setItem("qm-inv",JSON.stringify(state))}catch(e){}
+  if(!gh){status("Saved in this browser only");return}
+  dirty=true;clearTimeout(saveT);status("Saving…");saveT=setTimeout(push,1200);
+}
+function snapshot(){hist.push(JSON.stringify(state));if(hist.length>50)hist.shift();$("#undo").disabled=false}
+function setQty(n,v,flash){
+  v=Math.max(0,Math.floor(Number(v)||0));if(v===qty(n))return render();
+  snapshot();if(v)state.counts[n]=v;else delete state.counts[n];save();render(flash?n:null);
+}
+
+function render(flashName){
+  const q=$("#q").value.trim().toLowerCase(),only=$("#stock").checked,sort=$("#sort").value;
+  const all=items(),total=all.reduce((a,i)=>a+qty(i.n),0),held=all.filter(i=>qty(i.n)>0).length;
+  $("#sum").textContent=`${held} of ${all.length} item types in stock · ${total.toLocaleString()} pieces total`;
+  const active=$("#tally").dataset.cat||"";
+  $("#tally").innerHTML=CATS.map(c=>{const g=all.filter(i=>i.c===c);const s=g.reduce((a,i)=>a+qty(i.n),0);
+    return `<button data-cat="${esc(c)}" aria-pressed="${active===c}"><b>${s}</b><span>${esc(c)}</span></button>`}).join("");
+  let list=all.filter(i=>(!q||i.n.toLowerCase().includes(q))&&(!only||qty(i.n)>0)&&(!active||i.c===active));
+  const row=i=>`<div class="row${qty(i.n)?"":" zero"}${i.n===flashName?" flash":""}" data-n="${esc(i.n)}">
+    <div class="nm">${esc(i.n)}${sort!=="cat"?`<em>${esc(i.c)}</em>`:""}${baseNames.has(i.n)?"":`<em>custom</em>`}</div>
+    <div class="qty">${baseNames.has(i.n)?"":`<button class="del" data-act="del" aria-label="Remove ${esc(i.n)}">✕</button>`}
+      <button data-act="-" aria-label="Remove one ${esc(i.n)}">−</button>
+      <input type="number" min="0" inputmode="numeric" value="${qty(i.n)}" aria-label="${esc(i.n)} quantity">
+      <button data-act="+" aria-label="Add one ${esc(i.n)}">+</button></div></div>`;
+  let html="";
+  if(!list.length)html=`<p class="empty">No items match${only?" — try turning off “In stock only”":""}.</p>`;
+  else if(sort==="cat"){for(const c of CATS){const g=list.filter(i=>i.c===c).sort((a,b)=>a.n.localeCompare(b.n));if(!g.length)continue;
+    const s=g.reduce((a,i)=>a+qty(i.n),0);html+=`<section class="grp"><h2>${esc(c)}<small>${s} pcs</small></h2>${g.map(row).join("")}</section>`}}
+  else{list.sort(sort==="az"?(a,b)=>a.n.localeCompare(b.n):(a,b)=>qty(b.n)-qty(a.n)||a.n.localeCompare(b.n));html=`<section class="grp">${list.map(row).join("")}</section>`}
+  $("#list").innerHTML=html;
+}
+
+$("#list").addEventListener("click",e=>{
+  const b=e.target.closest("button[data-act]");if(!b)return;const n=b.closest(".row").dataset.n;
+  if(b.dataset.act==="+")setQty(n,qty(n)+1,true);
+  else if(b.dataset.act==="-")setQty(n,qty(n)-1,true);
+  else if(b.dataset.act==="del"){snapshot();state.custom=state.custom.filter(i=>i.n!==n);delete state.counts[n];save();render()}
+});
+$("#list").addEventListener("change",e=>{if(e.target.matches(".qty input"))setQty(e.target.closest(".row").dataset.n,e.target.value,true)});
+$("#list").addEventListener("keydown",e=>{if(e.key==="Enter"&&e.target.matches(".qty input"))e.target.blur()});
+$("#tally").addEventListener("click",e=>{const b=e.target.closest("button");if(!b)return;const t=$("#tally");t.dataset.cat=t.dataset.cat===b.dataset.cat?"":b.dataset.cat;render()});
+$("#q").addEventListener("input",()=>render());$("#sort").addEventListener("change",()=>render());$("#stock").addEventListener("change",()=>render());
+$("#undo").addEventListener("click",()=>{const p=hist.pop();if(p){state=JSON.parse(p);save();render()}$("#undo").disabled=!hist.length});
+
+$("#newCat").innerHTML=CATS.map(c=>`<option>${esc(c)}</option>`).join("");
+$("#addBtn").addEventListener("click",()=>{$("#addForm").reset();$("#addDlg").showModal();$("#newName").focus()});
+$("#addForm").addEventListener("submit",e=>{e.preventDefault();const n=$("#newName").value.trim();if(!n)return;
+  if(items().some(i=>i.n.toLowerCase()===n.toLowerCase())){$("#newName").setCustomValidity("Already in the list");$("#newName").reportValidity();return}
+  snapshot();state.custom.push({n,c:$("#newCat").value});const v=Math.max(0,Math.floor(+$("#newQty").value||0));if(v)state.counts[n]=v;
+  save();$("#addDlg").close();render(n)});
+$("#newName").addEventListener("input",e=>e.target.setCustomValidity(""));
+document.querySelectorAll("[data-close]").forEach(b=>b.addEventListener("click",()=>b.closest("dialog").close()));
+
+$("#expBtn").addEventListener("click",()=>{$("#expText").value=items().map(i=>`${i.n}, ${i.c}, ${qty(i.n)}`).join("\n");$("#expDlg").showModal()});
+$("#copyBtn").addEventListener("click",async()=>{try{await navigator.clipboard.writeText($("#expText").value);$("#copyBtn").textContent="Copied"}catch(e){$("#expText").select();$("#copyBtn").textContent="Press Ctrl/⌘+C"}setTimeout(()=>$("#copyBtn").textContent="Copy",1800)});
+$("#impBtn").addEventListener("click",()=>{
+  snapshot();const counts={},custom=[];
+  for(const line of $("#expText").value.split("\n")){const parts=line.split(",").map(s=>s.trim());if(parts.length<2||!parts[0])continue;
+    const v=Math.max(0,Math.floor(+parts[parts.length-1]||0)),n=parts.slice(0,parts.length>=3?parts.length-2:1).join(", ");
+    const c=parts.length>=3&&CATS.includes(parts[parts.length-2])?parts[parts.length-2]:"Misc";
+    if(!baseNames.has(n)&&!custom.some(i=>i.n===n))custom.push({n,c});if(v)counts[n]=v}
+  state={counts,custom};save();$("#expDlg").close();render()});
+
+$("#ghBtn").addEventListener("click",()=>{
+  const m=location.hostname.match(/^([^.]+)\.github\.io$/);
+  $("#ghOwner").value=gh?.owner||(m?m[1]:"");$("#ghRepo").value=gh?.repo||(m?(location.pathname.split("/")[1]||""):"");
+  $("#ghToken").value=gh?.token||"";$("#ghMsg").textContent="";$("#ghDlg").showModal()});
+$("#ghForm").addEventListener("submit",async e=>{e.preventDefault();
+  gh={owner:$("#ghOwner").value.trim(),repo:$("#ghRepo").value.trim(),token:$("#ghToken").value.trim()};
+  $("#ghMsg").textContent="Checking…";
+  try{const r=await api();if(r.status===401)throw "That token was rejected.";if(r.status===404){
+      const t=await fetch(`https://api.github.com/repos/${encodeURIComponent(gh.owner)}/${encodeURIComponent(gh.repo)}`,{headers:{Authorization:`Bearer ${gh.token}`}});
+      if(!t.ok)throw "Repository not found, or the token can't access it.";}
+    else if(!r.ok)throw "GitHub said: "+r.status;
+  }catch(err){$("#ghMsg").textContent=typeof err==="string"?err:"Couldn't reach GitHub.";gh=null;return}
+  try{localStorage.setItem("qm-gh",JSON.stringify(gh))}catch(e){}
+  sha=null;lastRemote="";$("#ghDlg").close();pull(true)});
+$("#ghOff").addEventListener("click",()=>{gh=null;try{localStorage.removeItem("qm-gh")}catch(e){}$("#ghDlg").close();status("Saved in this browser only")});
+
+loadLocal();render();
+if(gh){status("Connecting…");pull(true)}else status("Saved in this browser only · open Sync settings to connect GitHub");
+setInterval(()=>{if(document.visibilityState==="visible")pull()},30000);
+document.addEventListener("visibilitychange",()=>{if(document.visibilityState==="visible")pull()});
+}
+</script>
+</body>
+</html>
