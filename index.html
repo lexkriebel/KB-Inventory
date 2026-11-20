@@ -3,7 +3,7 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width,initial-scale=1">
-<title>Quartermaster Inventory</title>
+<title>Wayfair Town Inventory</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link href="https://fonts.googleapis.com/css2?family=Cinzel:wght@600;800&family=Alegreya+Sans:wght@400;500;700&display=swap" rel="stylesheet">
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.118.0/dist/umd/supabase.js"></script>
@@ -95,7 +95,7 @@ textarea{font:14px/1.4 ui-monospace,monospace;width:100%;min-height:220px;border
 </head>
 <body class="ro">
 <header class="band"><div class="wrap">
-  <h1>Quartermaster's Inventory</h1>
+  <h1>Wayfair Town Inventory</h1>
   <p class="sub" id="sum">Loading the ledger…</p>
 </div></header>
 
@@ -458,7 +458,7 @@ function openAuth(){
   amsg("");const signed=!!me;$("#authOut").hidden=signed;$("#authIn").hidden=!signed;
   $("#authTitle").textContent=signed?"Your account":"Sign in to edit";
   $("#aEmail").required=!signed;
-  if(signed)$("#aWho").textContent=`Signed in as ${me.email}. `+(me.editor?"You can edit the inventory.":"You're not on the editors list yet — ask the quartermaster to add this email.");
+  if(signed)$("#aWho").textContent=`Signed in as ${me.email}. `+(me.editor?"You can edit the inventory.":"You're not on the editors list yet — ask whoever runs the inventory to add this email.");
   $("#authDlg").showModal();
 }
 $("#acctBtn").addEventListener("click",()=>{if(!sb){status("Not connected to Supabase yet — see SETUP.md",true);return}openAuth()});

@@ -1,5 +1,5 @@
 -- =====================================================================
---  Quartermaster's Inventory — Supabase setup
+--  Wayfair Town Inventory — Supabase setup
 --  Paste this whole file into Supabase → SQL Editor → New query → Run.
 --  It is safe to run more than once: it never overwrites existing counts.
 -- =====================================================================
