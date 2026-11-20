@@ -158,4 +158,4 @@ How it works:
   - click a name to change or remove that sign-up
   - use **Edit item** or **Add item** to change the list
   - use **Clear all sign-ups** to start a fresh sheet for the next event
-- **Colors:** to preview another color scheme, add `?palette=tartan`, `?palette=loch` or `?palette=shortbread` to the bar page address. To change it for everyone, change `data-palette="heather"` near the top of `royaltea-bar.html`.
+- **Colors:** the page uses the dark **Highland Evening** scheme (moss green, loch blue, amber, cream). The older light schemes can still be previewed by adding `?palette=heather`, `?palette=tartan`, `?palette=loch` or `?palette=shortbread` to the bar page address. To change it for everyone, change `data-palette="highland"` near the top of `royaltea-bar.html`.
