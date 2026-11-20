@@ -33,32 +33,41 @@ body{margin:0;min-height:100vh;background:var(--bg);color:var(--ink);font:16px/1
 .hd{padding:clamp(22px,3.4vw,42px) max(4vw,16px) clamp(18px,2.4vw,28px);border-bottom:3px solid var(--acc);background:
   repeating-linear-gradient(90deg,transparent 0 22px,var(--t1) 22px 30px,transparent 30px 44px,var(--t2) 44px 47px,transparent 47px 66px),
   repeating-linear-gradient(0deg,transparent 0 22px,var(--t1) 22px 30px,transparent 30px 44px,var(--t2) 44px 47px,transparent 47px 66px),var(--hdbg)}
-.wrap{max-width:900px;margin:0 auto}
+.wrap{max-width:1100px;margin:0 auto}
 h1{font:700 clamp(34px,5vw,52px)/1 "Cormorant Garamond",Georgia,serif;margin:0 0 6px;color:var(--title);text-wrap:balance}
 .hd p{margin:0;color:var(--title);opacity:.88}
-.tools{display:flex;flex-wrap:wrap;gap:8px;align-items:center;padding:14px 0 6px}
+.hd p.summary{opacity:1;color:var(--acc2)}
+.tools{position:sticky;top:0;z-index:5;background:var(--bg);border-bottom:1px solid var(--rule);padding:10px max(4vw,16px)}
+.tools .wrap{display:flex;flex-wrap:wrap;gap:8px;align-items:center}
+#q{flex:1 1 220px}
+.layout{max-width:1100px;margin:0 auto;padding:0 max(4vw,16px)}
+
 .btn{font:600 15px/1 Lora,Georgia,serif;min-height:44px;padding:0 16px;border-radius:10px;border:1px solid var(--rule);background:var(--card);color:var(--ink);cursor:pointer}
 .btn:hover{border-color:var(--acc)}.btn.pri{background:var(--acc);border-color:var(--acc);color:var(--onacc)}
 .btn.warn{color:var(--warn)}.btn:disabled{opacity:.5;cursor:default}
 .btn:focus-visible,input:focus-visible,select:focus-visible,.pick:focus-visible{outline:2px solid var(--acc);outline-offset:2px}
 label.chk{display:flex;gap:8px;align-items:center;min-height:44px;cursor:pointer}
 label.chk input{width:18px;height:18px;accent-color:var(--acc)}
-.status{margin-left:auto;font-size:14px;color:var(--mute)}.status.bad{color:var(--warn)}
-.summary{font:600 15px Lora,serif;color:var(--acc2);margin:4px 0 12px}
-.list{display:grid;gap:8px;padding-bottom:120px}
-.item{background:var(--card);border:1px solid var(--rule);border-radius:12px}
-.item.sel{border:2px solid var(--acc);background:var(--sel)}
-.item.done{opacity:.72}
-.pick{all:unset;box-sizing:border-box;display:flex;justify-content:space-between;align-items:center;gap:12px;width:100%;padding:12px 14px;cursor:pointer;border-radius:12px}
-.item.done .pick{cursor:default}
-.box{flex:none;width:22px;height:22px;border-radius:6px;border:2px solid var(--rule);display:grid;place-items:center;font-size:14px;color:var(--onacc)}
+.status{margin-left:auto;font-size:14px;color:var(--mute)}
+@media(max-width:600px){.status{margin-left:0;width:100%}}.status.bad{color:var(--warn)}
+.summary{font:600 15px Lora,serif;color:var(--acc2);margin:10px 0 0}
+.list{padding-bottom:120px}
+.grp h2{font:700 24px/1.1 "Cormorant Garamond",Georgia,serif;margin:24px 0 4px;display:flex;justify-content:space-between;align-items:baseline;gap:10px;border-bottom:2px solid var(--acc);padding-bottom:6px;color:var(--title)}
+.grp h2 small{font:500 14px Lora,serif;color:var(--acc2)}
+.item{border-bottom:1px solid var(--rule)}
+.item.sel{background:var(--sel);box-shadow:inset 3px 0 0 var(--acc)}
+.item.done .pick{opacity:.6;cursor:default}
+.pick{all:unset;box-sizing:border-box;display:flex;align-items:center;gap:12px;width:100%;min-height:48px;padding:8px 6px;cursor:pointer}
+.box{flex:none;width:20px;height:20px;border-radius:5px;border:2px solid var(--rule);display:grid;place-items:center;font-size:13px;color:var(--onacc)}
 .item.sel .box{background:var(--acc);border-color:var(--acc)}
-.nm{flex:1}.nm b{font-weight:600;font-size:17px}.tr{color:var(--mute);font-weight:400;font-size:16px}.nm small{display:block;color:var(--mute);font-size:14px}
-.pill{flex:none;font:600 13px/1 Lora,serif;padding:6px 10px;border-radius:99px;background:var(--acc2);color:var(--onacc2);white-space:nowrap}
-.item.done .pill{background:transparent;color:var(--acc2);border:1px solid var(--acc2)}
-.who{display:flex;flex-wrap:wrap;gap:6px;padding:0 14px 12px 50px;margin-top:-4px}
+.nm{flex:1}.nm b{font-weight:600;font-size:16px}.tr{color:var(--mute);font-weight:400}
+.nm small{color:var(--mute);font-size:14px}.nm em{font-style:normal;font-size:13px;color:var(--acc);margin-left:6px}
+.cnt{flex:none;text-align:right;white-space:nowrap;font-size:14px;color:var(--mute)}
+.cnt b{font-size:18px;color:var(--acc2);font-variant-numeric:tabular-nums}
+.item.done .cnt{color:var(--acc2)}
+.who{display:flex;flex-wrap:wrap;gap:6px;padding:0 6px 10px 38px;margin-top:-4px}
 .who:empty{display:none}
-.chip{font:14px/1.2 Lora,serif;padding:5px 10px;border-radius:99px;border:1px solid var(--rule);background:var(--bg);color:var(--ink)}
+.chip{font:13px/1.2 Lora,serif;padding:4px 9px;border-radius:99px;border:1px solid var(--rule);background:var(--bg);color:var(--ink)}
 button.chip{cursor:pointer}button.chip:hover{border-color:var(--acc)}
 .chip i{font-style:normal;color:var(--mute)}
 .edit-item{font:13px Lora,serif;color:var(--mute);background:none;border:1px dashed var(--rule);border-radius:99px;padding:4px 10px;cursor:pointer}
@@ -91,19 +100,26 @@ input,select{font:16px Lora,serif;min-height:44px;border-radius:10px;border:1px 
 <header class="hd"><div class="wrap">
   <h1>Royaltea Bar</h1>
   <p>Sign-up sheet · tap the things you'll bring, then confirm</p>
+  <p class="summary" id="summary"></p>
 </div></header>
 
-<main style="padding:0 max(4vw,16px)"><div class="wrap">
-  <div class="tools">
-    <label class="chk"><input type="checkbox" id="needOnly"> Still needed only</label>
-    <button class="btn edonly" id="addItemBtn">Add item</button>
-    <button class="btn warn edonly" id="clearBtn">Clear all sign-ups</button>
-    <button class="btn" id="acctBtn">Organizer sign in</button>
-    <span class="status" id="status" role="status">Loading…</span>
-  </div>
-  <p class="summary" id="summary"></p>
-  <div class="list" id="list"></div>
-</div></main>
+<div class="tools"><div class="wrap">
+  <input id="q" type="search" placeholder="Search items…" aria-label="Search items">
+  <select id="sort" aria-label="Sort" style="width:auto">
+    <option value="sheet">Sheet order</option>
+    <option value="az">A–Z</option>
+    <option value="need">Most needed</option>
+  </select>
+  <label class="chk"><input type="checkbox" id="needOnly"> Still needed only</label>
+  <button class="btn edonly" id="addItemBtn">Add item</button>
+  <button class="btn warn edonly" id="clearBtn">Clear all sign-ups</button>
+  <button class="btn" id="acctBtn">Organizer sign in</button>
+  <span class="status" id="status" role="status">Loading…</span>
+</div></div>
+
+<div class="layout">
+  <main><div class="list" id="list"></div></main>
+</div>
 
 <div class="bar" id="bar" aria-hidden="true"><div class="wrap">
   <span class="count" id="selCount"></span>
@@ -189,31 +205,37 @@ const showState=()=>status(!sb?"Not connected":me?.editor?`Organizer · ${me.nam
 // ---------- drawing ----------
 function render(){
   document.body.classList.toggle("ed",!!me?.editor);
-  const only=$("#needOnly").checked;
+  const only=$("#needOnly").checked,q=$("#q").value.trim().toLowerCase(),sort=$("#sort").value;
   for(const id of [...selected])if(!items.some(i=>i.id===id&&left(i)>0))selected.delete(id);
   const open=items.filter(i=>left(i)>0).length;
-  $("#summary").textContent=loaded?(items.length?(open?`${open} of ${items.length} items still needed`:`Everything is covered — thank you all!`):""):"";
-  const shown=items.filter(i=>!only||left(i)>0);
-  if(!loaded){$("#list").innerHTML=`<p class="empty">Loading the sheet…</p>`}
-  else if(!shown.length){$("#list").innerHTML=`<p class="empty">${items.length?"Everything is covered!":"No items on the sheet yet."}</p>`}
-  else $("#list").innerHTML=shown.map(it=>{
+  $("#summary").textContent=loaded&&items.length?(open?`${open} of ${items.length} items still needed`:`Everything is covered — thank you all!`):"";
+  let shown=items.filter(i=>(!only||left(i)>0)&&(!q||(i.name+" "+(i.translation||"")).toLowerCase().includes(q)));
+  const row=it=>{
     const l=left(it),done=l===0,sel=selected.has(it.id);
-    const mine=signups.filter(s=>s.item_id===it.id);
-    const chips=mine.map(s=>{const rn=realNames.get(s.id);
+    const chips=signups.filter(s=>s.item_id===it.id).map(s=>{const rn=realNames.get(s.id);
       const t=`${esc(s.character_name)}${rn?` <i>(${esc(rn)})</i>`:""} ×${s.qty}`;
       return me?.editor?`<button class="chip" data-edit="${s.id}" title="Edit this sign-up">${t} ✎</button>`:`<span class="chip">${t}</span>`}).join("");
     return `<div class="item${sel?" sel":""}${done?" done":""}">
       <button class="pick" data-id="${it.id}" aria-pressed="${sel}" ${done?'aria-disabled="true"':""}>
         <span class="box" aria-hidden="true">${sel?"✓":""}</span>
-        <span class="nm"><b>${esc(it.name)}</b>${it.translation?` <span class="tr">(${esc(it.translation)})</span>`:""}<small>${esc(it.packaging||"")}${it.packaging?" · ":""}need ${it.needed}</small></span>
-        <span class="pill">${done?"Covered ✓":`${l} left`}</span>
+        <span class="nm"><b>${esc(it.name)}</b>${it.translation?` <span class="tr">(${esc(it.translation)})</span>`:""}${it.packaging?` <small>· ${esc(it.packaging)}</small>`:""}</span>
+        <span class="cnt">${done?"✓ covered":`<b>${l}</b> of ${it.needed} left`}</span>
       </button>
       <div class="who">${chips}${me?.editor?`<button class="edit-item" data-item="${it.id}">Edit item</button>`:""}</div>
-    </div>`}).join("");
+    </div>`};
+  let html="";
+  if(!loaded)html=`<p class="empty">Loading the sheet…</p>`;
+  else if(!shown.length)html=`<p class="empty">${items.length?(only?"Nothing here is still needed.":"No items match."):"No items on the sheet yet."}</p>`;
+  else{if(sort!=="sheet")shown=[...shown].sort(sort==="az"?(a,b)=>a.name.localeCompare(b.name)||(a.translation||"").localeCompare(b.translation||""):(a,b)=>left(b)-left(a)||a.name.localeCompare(b.name));
+    html=`<section class="grp" style="margin-top:16px">${shown.map(row).join("")}</section>`}
+  $("#list").innerHTML=html;
   const n=selected.size;
   $("#bar").classList.toggle("on",n>0);$("#bar").setAttribute("aria-hidden",String(!n));
   $("#selCount").textContent=`${n} item${n===1?"":"s"} selected`;
 }
+$("#q").addEventListener("input",render);$("#sort").addEventListener("change",render);
+const toolsH=()=>document.documentElement.style.setProperty("--toolsH",$(".tools").offsetHeight+"px");
+new ResizeObserver(toolsH).observe($(".tools"));toolsH();
 
 // ---------- loading ----------
 async function loadAll(){
