@@ -5,18 +5,18 @@
 <meta name="viewport" content="width=device-width,initial-scale=1">
 <title>Royaltea Bar · Wayfair Town</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
-<link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:wght@600;700&family=Lora:wght@400;500;600&display=swap" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=Cinzel:wght@600;700;800&family=Alegreya+Sans:wght@400;500;700&display=swap" rel="stylesheet">
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.118.0/dist/umd/supabase.js"></script>
 <script>
   // Colour scheme. Change data-palette above to switch for everyone: highland (current), heather, tartan, loch or shortbread.
   // To preview another one without changing it, add ?palette=tartan (etc.) to the page address.
   try{const p=new URLSearchParams(location.search).get("palette");if(/^(highland|heather|tartan|loch|shortbread)$/.test(p||""))document.documentElement.dataset.palette=p}catch(e){}
 </script>
-<script src="nav.js?v=2" defer></script>
+<script src="nav.js?v=3" defer></script>
 <style>
 /* Highland Evening: dark moss ground, loch blue, lantern amber, cream. Older light schemes kept below. */
 :root{color-scheme:light}
-:root{--nav-ink:var(--ink);--nav-mute:var(--mute);--nav-rule:var(--rule);--nav-hover:var(--sel);--nav-icon:var(--acc2);--nav-active:var(--acc);--nav-brand:var(--acc);--nav-font:"Cormorant Garamond"}
+:root{--nav-ink:var(--ink);--nav-mute:var(--mute);--nav-rule:var(--rule);--nav-hover:var(--sel);--nav-icon:var(--acc2);--nav-active:var(--acc);--nav-brand:var(--acc)}
 [data-palette=highland]{color-scheme:dark;--bg:#151b16;--ink:#f3ead9;--mute:#b3b8a4;--card:#202a21;--rule:#334234;--sel:#1d2833;--acc:#7aa7dc;--onacc:#151b16;--acc2:#e3a04f;--onacc2:#151b16;
   --hdbg:#1b231c;--t1:transparent;--t2:transparent;--title:#efd9c0;--warn:#f08a8a;--nav-bg:#111612;--nav-icon:#8fa86f}
 [data-palette=heather]{--bg:#f6f0e4;--ink:#3b2f2a;--mute:#76665a;--card:#fffaf1;--rule:#e2d6c2;--sel:#f1e8f3;--acc:#7b5a8f;--onacc:#fff;--acc2:#5f6d42;--onacc2:#fff;
@@ -29,12 +29,12 @@
   --hdbg:#ead6b0;--t1:#a8572a26;--t2:#5b6b4533;--title:#3a2a1c;--warn:#9b2335;--nav-bg:#eedfc0}
 *{box-sizing:border-box;min-width:0}
 [hidden]{display:none!important}
-body{margin:0;min-height:100vh;background:var(--bg);color:var(--ink);font:16px/1.5 Lora,Georgia,serif;overflow-x:clip}
+body{margin:0;min-height:100vh;background:var(--bg);color:var(--ink);font:16px/1.5 "Alegreya Sans",system-ui,sans-serif;overflow-x:clip}
 .hd{padding:clamp(22px,3.4vw,42px) max(4vw,16px) clamp(18px,2.4vw,28px);border-bottom:3px solid var(--acc);background:
   repeating-linear-gradient(90deg,transparent 0 22px,var(--t1) 22px 30px,transparent 30px 44px,var(--t2) 44px 47px,transparent 47px 66px),
   repeating-linear-gradient(0deg,transparent 0 22px,var(--t1) 22px 30px,transparent 30px 44px,var(--t2) 44px 47px,transparent 47px 66px),var(--hdbg)}
 .wrap{max-width:1100px;margin:0 auto}
-h1{font:700 clamp(34px,5vw,52px)/1 "Cormorant Garamond",Georgia,serif;margin:0 0 6px;color:var(--title);text-wrap:balance}
+h1{font:800 clamp(28px,4.4vw,42px)/1.05 Cinzel,serif;margin:0 0 6px;color:var(--title);text-wrap:balance}
 .hd p{margin:0;color:var(--title);opacity:.88}
 .hd p.summary{opacity:1;color:var(--acc2)}
 .tools{position:sticky;top:0;z-index:5;background:var(--bg);border-bottom:1px solid var(--rule);padding:10px max(4vw,16px)}
@@ -42,7 +42,7 @@ h1{font:700 clamp(34px,5vw,52px)/1 "Cormorant Garamond",Georgia,serif;margin:0 0
 #q{flex:1 1 220px}
 .layout{max-width:1100px;margin:0 auto;padding:0 max(4vw,16px)}
 
-.btn{font:600 15px/1 Lora,Georgia,serif;min-height:44px;padding:0 16px;border-radius:10px;border:1px solid var(--rule);background:var(--card);color:var(--ink);cursor:pointer}
+.btn{font:500 16px/1 "Alegreya Sans",system-ui,sans-serif;min-height:44px;padding:0 16px;border-radius:10px;border:1px solid var(--rule);background:var(--card);color:var(--ink);cursor:pointer}
 .btn:hover{border-color:var(--acc)}.btn.pri{background:var(--acc);border-color:var(--acc);color:var(--onacc)}
 .btn.warn{color:var(--warn)}.btn:disabled{opacity:.5;cursor:default}
 .btn:focus-visible,input:focus-visible,select:focus-visible,.pick:focus-visible{outline:2px solid var(--acc);outline-offset:2px}
@@ -50,10 +50,10 @@ label.chk{display:flex;gap:8px;align-items:center;min-height:44px;cursor:pointer
 label.chk input{width:18px;height:18px;accent-color:var(--acc)}
 .status{margin-left:auto;font-size:14px;color:var(--mute)}
 @media(max-width:600px){.status{margin-left:0;width:100%}}.status.bad{color:var(--warn)}
-.summary{font:600 15px Lora,serif;color:var(--acc2);margin:10px 0 0}
+.summary{font:500 16px "Alegreya Sans",sans-serif;color:var(--acc2);margin:10px 0 0}
 .list{padding-bottom:120px}
-.grp h2{font:700 24px/1.1 "Cormorant Garamond",Georgia,serif;margin:24px 0 4px;display:flex;justify-content:space-between;align-items:baseline;gap:10px;border-bottom:2px solid var(--acc);padding-bottom:6px;color:var(--title)}
-.grp h2 small{font:500 14px Lora,serif;color:var(--acc2)}
+.grp h2{font:600 18px/1.2 Cinzel,serif;margin:24px 0 4px;display:flex;justify-content:space-between;align-items:baseline;gap:10px;border-bottom:2px solid var(--acc);padding-bottom:6px;color:var(--title)}
+.grp h2 small{font:500 14px "Alegreya Sans",sans-serif;color:var(--acc2)}
 .item{border-bottom:1px solid var(--rule)}
 .item.sel{background:var(--sel);box-shadow:inset 3px 0 0 var(--acc)}
 .item.done .pick{opacity:.6;cursor:default}
@@ -67,10 +67,10 @@ label.chk input{width:18px;height:18px;accent-color:var(--acc)}
 .item.done .cnt{color:var(--acc2)}
 .who{display:flex;flex-wrap:wrap;gap:6px;padding:0 6px 10px 38px;margin-top:-4px}
 .who:empty{display:none}
-.chip{font:13px/1.2 Lora,serif;padding:4px 9px;border-radius:99px;border:1px solid var(--rule);background:var(--bg);color:var(--ink)}
+.chip{font:14px/1.2 "Alegreya Sans",sans-serif;padding:4px 9px;border-radius:99px;border:1px solid var(--rule);background:var(--bg);color:var(--ink)}
 button.chip{cursor:pointer}button.chip:hover{border-color:var(--acc)}
 .chip i{font-style:normal;color:var(--mute)}
-.edit-item{font:13px Lora,serif;color:var(--mute);background:none;border:1px dashed var(--rule);border-radius:99px;padding:4px 10px;cursor:pointer}
+.edit-item{font:14px "Alegreya Sans",sans-serif;color:var(--mute);background:none;border:1px dashed var(--rule);border-radius:99px;padding:4px 10px;cursor:pointer}
 .empty{padding:40px 0;text-align:center;color:var(--mute)}
 .ed .edonly{display:revert}.edonly{display:none}
 .bar{position:fixed;left:0;right:0;bottom:0;z-index:30;background:var(--card);border-top:2px solid var(--acc);box-shadow:0 -6px 18px #0002;
@@ -81,10 +81,10 @@ button.chip{cursor:pointer}button.chip:hover{border-color:var(--acc)}
 @media(min-width:900px){.bar{left:var(--navW,0)}}
 dialog{border:1px solid var(--rule);border-radius:16px;background:var(--card);color:var(--ink);width:min(560px,94vw);padding:20px}
 dialog::backdrop{background:#000000aa}
-dialog h2{font:700 26px/1.1 "Cormorant Garamond",serif;margin:0 0 6px;color:var(--acc)}
+dialog h2{font:600 20px/1.2 Cinzel,serif;margin:0 0 6px;color:var(--acc)}
 dialog form{display:grid;gap:12px}
 dialog label{display:grid;gap:4px;font-weight:500}
-input,select{font:16px Lora,serif;min-height:44px;border-radius:10px;border:1px solid var(--rule);background:var(--bg);color:var(--ink);padding:0 12px;width:100%}
+input,select{font:16px "Alegreya Sans",sans-serif;min-height:44px;border-radius:10px;border:1px solid var(--rule);background:var(--bg);color:var(--ink);padding:0 12px;width:100%}
 .lines{display:grid;gap:8px;max-height:46vh;overflow:auto;padding:2px}
 .line{display:grid;grid-template-columns:1fr 90px;gap:10px;align-items:center;padding:8px 10px;border:1px solid var(--rule);border-radius:10px;background:var(--bg)}
 .line small{display:block;color:var(--mute);font-size:13px}

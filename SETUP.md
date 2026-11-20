@@ -1,5 +1,7 @@
 # Setting up live sync with Supabase
 
+**Site addresses:** Home is `https://lexkriebel.github.io/KB-Inventory/`, the inventory is `…/inventory.html` and the bar sign-up sheet is `…/royaltea-bar.html`.
+
 These steps connect the inventory page to a free Supabase database. When you're done:
 
 - **Anyone with the link** can see the live counts. They don't need to log in.
@@ -73,7 +75,7 @@ Also make sure that email is in the **editors** table (step 3). Creating a user 
 1. Go to **Authentication** → **URL Configuration**.
 2. Set **Site URL** to:
    `https://lexkriebel.github.io/KB-Inventory/`
-3. Under **Redirect URLs**, click **Add URL**, paste the same address and save.
+3. Under **Redirect URLs**, click **Add URL**, paste `https://lexkriebel.github.io/KB-Inventory/**` (with the two stars at the end, which covers every page of the site) and save.
 
 This is where people land after clicking a sign-in link in their email.
 
@@ -96,7 +98,7 @@ This is where people land after clicking a sign-in link in their email.
 
 **Or do it yourself on GitHub:**
 
-1. In this repository, open **`index.html`** and click the **pencil icon** (Edit this file).
+1. In this repository, open **`inventory.html`** and click the **pencil icon** (Edit this file). (Do the same in `royaltea-bar.html`.)
 2. Near the start of the `<script>` section, find these two lines:
    ```
    const SUPABASE_URL = "";
@@ -112,7 +114,7 @@ This is where people land after clicking a sign-in link in their email.
 
 ## 8. Test it
 
-1. Open `https://lexkriebel.github.io/KB-Inventory/` in a **private/incognito window**. You should see the counts. Next to the toolbar, the status should say **Live · view only — sign in to edit**. There should be no − / + buttons.
+1. Open `https://lexkriebel.github.io/KB-Inventory/inventory.html` in a **private/incognito window**. You should see the counts. Next to the toolbar, the status should say **Live · view only — sign in to edit**. There should be no − / + buttons.
 2. In a normal window, click **Sign in**, enter your email and password, and click **Sign in**. The status should change to **Live · editing as (your name)**, and the − / + buttons appear.
 3. Press **+** on an item. Watch the private window, or your phone: the number should change there within a couple of seconds, without refreshing.
 4. Click **Recent changes**. Your edit should be listed with your name.
