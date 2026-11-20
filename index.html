@@ -11,24 +11,25 @@
 /* VOICE: a camp quartermaster's working ledger, practical with a little ceremony
    IDEA: the stock book kept in a supply wagon, one ruled line per good
    PICTURE: the ledger itself, under a strip of category tallies
-   COLOUR and TYPE: wine-dark ground, bone ink, verdigris accent; Cinzel + Alegreya Sans
+   COLOUR and TYPE: black ground, indigo panels, blue / purple / green accents; Cinzel + Alegreya Sans
    LAYOUT: modest title, tally strip, sticky tools, ruled list grouped by category */
-:root{color-scheme:light dark;
---bg:light-dark(#f7eff1,#22111b);--panel:light-dark(#fffafb,#2e1824);--ink:light-dark(#2a1420,#f1e9e2);
---mute:light-dark(#7a5e6a,#b9a2ac);--rule:light-dark(#e6d3da,#43283a);--acc:light-dark(#1d7564,#5cc3ab);
---accink:light-dark(#fff,#0f2a24);--warn:light-dark(#a8323e,#ff8d8d)}
-:root[data-theme=light]{color-scheme:light}:root[data-theme=dark]{color-scheme:dark}
+:root{color-scheme:dark;
+--bg:#07070d;--panel:#13122a;--panel2:#1b1940;--ink:#e9e7f7;--mute:#9b97c4;--rule:#29265a;
+--blue:#5aa9ff;--purple:#a78bfa;--green:#3ddc97;
+--acc:var(--green);--accink:#03140c;--warn:#ff7a9a}
 *{box-sizing:border-box;min-width:0}
 body{margin:0;background:var(--bg);color:var(--ink);font:16px/1.5 "Alegreya Sans",system-ui,sans-serif;overflow-x:clip}
 .band{padding:clamp(20px,3vw,40px) max(4vw,14px)}
 .wrap{max-width:1100px;margin:0 auto}
-h1{font:800 clamp(28px,4.4vw,42px)/1.05 Cinzel,serif;margin:0 0 6px;text-wrap:balance}
+h1{font:800 clamp(28px,4.4vw,42px)/1.05 Cinzel,serif;margin:0 0 6px;text-wrap:balance;color:var(--purple);background:linear-gradient(90deg,var(--blue),var(--purple) 55%,var(--green));-webkit-background-clip:text;background-clip:text;-webkit-text-fill-color:transparent}
+.band:first-child{background:radial-gradient(ellipse at 15% 0%,#1a1f5a 0,transparent 60%),radial-gradient(ellipse at 90% 10%,#2a1452 0,transparent 55%)}
 .sub{color:var(--mute);margin:0}
 .tally{display:grid;grid-template-columns:repeat(auto-fill,minmax(140px,1fr));gap:8px;margin-top:18px}
 .tally button{all:unset;cursor:pointer;background:var(--panel);border:1px solid var(--rule);border-radius:10px;padding:10px 12px;min-height:44px}
 .tally button:focus-visible{outline:2px solid var(--acc);outline-offset:2px}
-.tally button[aria-pressed=true]{border-color:var(--acc);box-shadow:inset 0 0 0 1px var(--acc)}
-.tally b{display:block;font:700 22px/1.1 Cinzel,serif}.tally span{font-size:13px;color:var(--mute)}
+.tally button[aria-pressed=true]{border-color:var(--acc);box-shadow:inset 0 0 0 1px var(--acc);background:var(--panel2)}
+.tally button:hover,.qty button:hover,.btn:not(.pri):not(:disabled):hover{border-color:var(--purple)}
+.tally b{display:block;font:700 22px/1.1 Cinzel,serif;color:var(--blue)}.tally span{font-size:13px;color:var(--mute)}
 .tools{position:sticky;top:0;z-index:5;background:var(--bg);border-bottom:1px solid var(--rule);padding:10px max(4vw,14px)}
 .tools .wrap{display:flex;flex-wrap:wrap;gap:8px;align-items:center}
 input,select,.btn{font:inherit;font-size:16px;min-height:44px;border-radius:9px;border:1px solid var(--rule);background:var(--panel);color:var(--ink);padding:0 12px}
@@ -38,11 +39,11 @@ input:focus-visible,select:focus-visible,.btn:focus-visible{outline:2px solid va
 .btn:disabled{opacity:.45;cursor:default}
 label.chk{display:flex;gap:6px;align-items:center;min-height:44px;cursor:pointer}
 label.chk input{min-height:0;width:18px;height:18px;accent-color:var(--acc)}
-.grp h2{font:600 18px/1.2 Cinzel,serif;margin:26px 0 6px;display:flex;justify-content:space-between;gap:10px;border-bottom:2px solid var(--ink);padding-bottom:6px}
+.grp h2{font:600 18px/1.2 Cinzel,serif;margin:26px 0 6px;display:flex;justify-content:space-between;gap:10px;border-bottom:2px solid var(--purple);padding-bottom:6px;color:var(--purple)}
 .grp h2 small{font:500 14px "Alegreya Sans",sans-serif;color:var(--mute)}
 .row{display:grid;grid-template-columns:minmax(0,1fr) auto;gap:10px;align-items:center;padding:6px 2px;border-bottom:1px solid var(--rule)}
 .row.zero .nm{color:var(--mute)}
-.nm{font-weight:500}.nm em{font-style:normal;font-size:13px;color:var(--acc);margin-left:6px}
+.nm{font-weight:500}.nm em{font-style:normal;font-size:13px;color:var(--blue);margin-left:6px}
 .qty{display:flex;align-items:center;gap:4px}
 .qty button{width:44px;height:44px;border-radius:9px;border:1px solid var(--rule);background:var(--panel);color:var(--ink);font-size:20px;cursor:pointer;line-height:1}
 .qty button:focus-visible{outline:2px solid var(--acc)}
@@ -51,7 +52,7 @@ label.chk input{min-height:0;width:18px;height:18px;accent-color:var(--acc)}
 .empty{padding:40px 0;color:var(--mute);text-align:center}
 .status{font-size:13px;color:var(--mute);margin-left:auto}
 dialog{border:1px solid var(--rule);border-radius:14px;background:var(--panel);color:var(--ink);max-width:min(560px,92vw);width:100%}
-dialog::backdrop{background:#0008}
+dialog::backdrop{background:#000b}
 dialog h3{font:600 20px Cinzel,serif;margin:0 0 12px}
 dialog form{display:grid;gap:10px}dialog label{display:grid;gap:4px;font-weight:500}
 textarea{font:14px/1.4 ui-monospace,monospace;width:100%;min-height:220px;border-radius:9px;border:1px solid var(--rule);background:var(--bg);color:var(--ink);padding:10px}
