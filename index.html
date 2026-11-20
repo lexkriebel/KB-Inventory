@@ -12,7 +12,7 @@
    IDEA: the stock book kept in a supply wagon, one ruled line per good
    PICTURE: the ledger itself, under a strip of category tallies
    COLOUR and TYPE: black ground, indigo panels, blue / purple / green accents; Cinzel + Alegreya Sans
-   LAYOUT: modest title, tally strip, sticky tools, ruled list grouped by category */
+   LAYOUT: modest title, sticky tools, collapsible category sidebar on the left, ruled list grouped by category */
 :root{color-scheme:dark;
 --bg:#07070d;--panel:#13122a;--panel2:#1b1940;--ink:#e9e7f7;--mute:#9b97c4;--rule:#29265a;
 --blue:#5aa9ff;--purple:#a78bfa;--green:#3ddc97;
@@ -24,17 +24,42 @@ body{margin:0;background:var(--bg);color:var(--ink);font:16px/1.5 "Alegreya Sans
 h1{font:800 clamp(28px,4.4vw,42px)/1.05 Cinzel,serif;margin:0 0 6px;text-wrap:balance;color:var(--purple);background:linear-gradient(90deg,var(--blue),var(--purple) 55%,var(--green));-webkit-background-clip:text;background-clip:text;-webkit-text-fill-color:transparent}
 .band:first-child{background:radial-gradient(ellipse at 15% 0%,#1a1f5a 0,transparent 60%),radial-gradient(ellipse at 90% 10%,#2a1452 0,transparent 55%)}
 .sub{color:var(--mute);margin:0}
-.tally{display:grid;grid-template-columns:repeat(auto-fill,minmax(140px,1fr));gap:8px;margin-top:18px}
-.tally button{all:unset;cursor:pointer;background:var(--panel);border:1px solid var(--rule);border-radius:10px;padding:10px 12px;min-height:44px}
-.tally button:focus-visible{outline:2px solid var(--acc);outline-offset:2px}
-.tally button[aria-pressed=true]{border-color:var(--acc);box-shadow:inset 0 0 0 1px var(--acc);background:var(--panel2)}
-.tally button:hover,.qty button:hover,.btn:not(.pri):not(:disabled):hover{border-color:var(--purple)}
-.tally b{display:block;font:700 22px/1.1 Cinzel,serif;color:var(--blue)}.tally span{font-size:13px;color:var(--mute)}
+.layout{max-width:1100px;margin:0 auto;padding:0 max(4vw,14px);display:grid;grid-template-columns:200px minmax(0,1fr);gap:28px;align-items:start}
+.side{position:sticky;top:calc(var(--toolsH,64px) + 12px);max-height:calc(100vh - var(--toolsH,64px) - 24px);overflow:auto;margin-top:20px;background:var(--panel);border:1px solid var(--rule);border-radius:12px;padding:8px}
+.sidehead{display:flex;justify-content:space-between;align-items:center;padding:2px 4px 6px 8px;font:600 14px Cinzel,serif;color:var(--purple)}
+.sidehead button{all:unset;box-sizing:border-box;cursor:pointer;width:32px;height:32px;display:grid;place-items:center;border-radius:8px;color:var(--mute);font-size:18px}
+.sidehead button:hover{color:var(--ink);background:var(--panel2)}.sidehead button:focus-visible{outline:2px solid var(--acc)}
+.tally{display:grid;gap:2px;grid-auto-rows:min-content;align-content:start}
+.tally button{all:unset;box-sizing:border-box;cursor:pointer;display:flex;justify-content:space-between;align-items:center;gap:8px;padding:5px 8px;min-height:32px;border-radius:8px;border:1px solid transparent;font-size:14px}
+.tally button:hover{background:var(--panel2)}
+.tally button:focus-visible{outline:2px solid var(--acc);outline-offset:1px}
+.tally button[aria-pressed=true]{border-color:var(--acc);background:var(--panel2)}
+.tally span{color:var(--ink)}.tally b{font:700 14px/1 "Alegreya Sans",sans-serif;color:var(--blue);font-variant-numeric:tabular-nums}
+.tally .all{border-bottom:1px solid var(--rule);border-radius:8px 8px 0 0;margin-bottom:4px}
+.qty button:hover,.btn:not(.pri):not(:disabled):hover{border-color:var(--purple)}
+body.side-off .layout{grid-template-columns:minmax(0,1fr)}body.side-off .side{display:none}
+#sideBack{display:none}
+@media(max-width:899px){
+  .layout{grid-template-columns:minmax(0,1fr)}
+  .side{position:fixed;z-index:30;top:0;left:0;bottom:0;margin:0;width:min(280px,84vw);max-height:none;border-radius:0 14px 14px 0;transform:translateX(-105%);transition:transform .2s;display:block!important;padding:12px 10px}
+  body.side-open .side{transform:none}
+  body.side-open #sideBack{display:block;position:fixed;inset:0;z-index:25;background:#000a}
+  .tally button{min-height:44px;font-size:15px}
+}
+@media(prefers-reduced-motion:reduce){.side{transition:none}}
 .tools{position:sticky;top:0;z-index:5;background:var(--bg);border-bottom:1px solid var(--rule);padding:10px max(4vw,14px)}
 .tools .wrap{display:flex;flex-wrap:wrap;gap:8px;align-items:center}
 input,select,.btn{font:inherit;font-size:16px;min-height:44px;border-radius:9px;border:1px solid var(--rule);background:var(--panel);color:var(--ink);padding:0 12px}
 input:focus-visible,select:focus-visible,.btn:focus-visible{outline:2px solid var(--acc);outline-offset:1px}
 #q{flex:1 1 220px}
+#sideBtn{display:flex;align-items:center;gap:6px}
+.logp{margin-top:18px;background:var(--panel);border:1px solid var(--rule);border-radius:12px;padding:12px 14px;max-width:1100px}
+.logp h2{font:600 16px Cinzel,serif;color:var(--green);margin:0 0 8px}
+.logp form{display:flex;flex-wrap:wrap;gap:8px;align-items:center}
+#lgName{flex:2 1 220px}#lgCat{flex:1 1 170px}#lgMode{flex:0 1 150px}#lgQty{flex:0 0 96px;text-align:right}
+#lgCat:disabled{opacity:.7}
+.logp .btn.pri{flex:1 0 96px;max-width:160px}@media(max-width:600px){.logp .btn.pri{max-width:none}}
+.logp .msg{margin-top:6px;min-height:1.4em}.logp .msg.ok{color:var(--green)}
 .btn{cursor:pointer;font-weight:500}.btn.pri{background:var(--acc);color:var(--accink);border-color:var(--acc)}
 .btn:disabled{opacity:.45;cursor:default}
 label.chk{display:flex;gap:6px;align-items:center;min-height:44px;cursor:pointer}
@@ -77,10 +102,26 @@ textarea{font:14px/1.4 ui-monospace,monospace;width:100%;min-height:220px;border
 <header class="band"><div class="wrap">
   <h1>Quartermaster's Inventory</h1>
   <p class="sub" id="sum">Loading the ledger…</p>
-  <div class="tally" id="tally"></div>
+  <section class="logp edonly" aria-labelledby="lgTitle">
+    <h2 id="lgTitle">Log inventory</h2>
+    <form id="lgForm" autocomplete="off">
+      <input id="lgName" list="lgList" placeholder="Item name…" aria-label="Item name" required>
+      <datalist id="lgList"></datalist>
+      <select id="lgCat" aria-label="Category"></select>
+      <select id="lgMode" aria-label="How to change the count">
+        <option value="set">New count</option>
+        <option value="add">Add</option>
+        <option value="sub">Remove</option>
+      </select>
+      <input id="lgQty" type="number" min="0" inputmode="numeric" placeholder="Count" aria-label="Count" required>
+      <button class="btn pri">Log</button>
+    </form>
+    <p class="msg" id="lgMsg" aria-live="polite"></p>
+  </section>
 </div></header>
 
 <div class="tools"><div class="wrap">
+  <button class="btn" id="sideBtn" aria-controls="side" aria-expanded="true"><span aria-hidden="true">☰</span> <span id="sideLbl">Categories</span></button>
   <input id="q" type="search" placeholder="Search items…" aria-label="Search items">
   <select id="sort" aria-label="Sort">
     <option value="cat">Group by category</option>
@@ -96,7 +137,14 @@ textarea{font:14px/1.4 ui-monospace,monospace;width:100%;min-height:220px;border
   <span class="status" id="status" role="status"></span>
 </div></div>
 
-<main class="band" style="padding-top:8px"><div class="wrap" id="list"></div></main>
+<div class="layout">
+  <aside class="side" id="side" aria-label="Categories">
+    <div class="sidehead">Categories<button id="sideClose" aria-label="Hide categories" title="Hide categories">«</button></div>
+    <nav class="tally" id="tally"></nav>
+  </aside>
+  <main style="padding:8px 0 40px"><div id="list"></div></main>
+</div>
+<div id="sideBack"></div>
 
 <dialog id="addDlg"><form id="addForm">
   <h3>Add an item</h3>
@@ -289,8 +337,10 @@ function render(flashName){
   const all=items(),total=all.reduce((a,i)=>a+qty(i.n),0),held=all.filter(i=>qty(i.n)>0).length;
   $("#sum").textContent=`${held} of ${all.length} item types in stock · ${total.toLocaleString()} pieces total`;
   const active=$("#tally").dataset.cat||"";
-  $("#tally").innerHTML=CATS.map(c=>{const g=all.filter(i=>i.c===c);const s=g.reduce((a,i)=>a+qty(i.n),0);
-    return `<button data-cat="${esc(c)}" aria-pressed="${active===c}"><b>${s}</b><span>${esc(c)}</span></button>`}).join("");
+  $("#tally").innerHTML=`<button class="all" data-cat="" aria-pressed="${!active}"><span>All items</span><b>${total}</b></button>`+CATS.map(c=>{const g=all.filter(i=>i.c===c);const s=g.reduce((a,i)=>a+qty(i.n),0);
+    return `<button data-cat="${esc(c)}" aria-pressed="${active===c}"><span>${esc(c)}</span><b>${s}</b></button>`}).join("");
+  $("#sideLbl").textContent=active||"Categories";
+  if(typeof lgFill==="function")lgFill();
   let list=all.filter(i=>(!q||i.n.toLowerCase().includes(q))&&(!only||qty(i.n)>0)&&(!active||i.c===active));
   const row=i=>`<div class="row${qty(i.n)?"":" zero"}${i.n===flashName?" flash":""}" data-n="${esc(i.n)}">
     <div class="nm">${esc(i.n)}${sort!=="cat"?`<em>${esc(i.c)}</em>`:""}${baseNames.has(i.n)?"":`<em>custom</em>`}</div>
@@ -318,7 +368,24 @@ $("#list").addEventListener("click",e=>{
 });
 $("#list").addEventListener("change",e=>{if(e.target.matches(".qty input")&&!e.target.readOnly)change(e.target.closest(".row").dataset.n,"set",e.target.value)});
 $("#list").addEventListener("keydown",e=>{if(e.key==="Enter"&&e.target.matches(".qty input"))e.target.blur()});
-$("#tally").addEventListener("click",e=>{const b=e.target.closest("button");if(!b)return;const t=$("#tally");t.dataset.cat=t.dataset.cat===b.dataset.cat?"":b.dataset.cat;render()});
+$("#tally").addEventListener("click",e=>{const b=e.target.closest("button");if(!b)return;const t=$("#tally");t.dataset.cat=t.dataset.cat===b.dataset.cat?"":b.dataset.cat;render();if(narrow())setSide(false)});
+// category sidebar: a collapsible column on wide screens, a slide-out drawer on phones
+const narrow=()=>matchMedia("(max-width:899px)").matches;
+let sideWide=true;try{sideWide=localStorage.getItem("qm-side")!=="off"}catch(e){}
+function setSide(open){
+  if(narrow()){document.body.classList.toggle("side-open",open);document.body.classList.remove("side-off")}
+  else{sideWide=open;try{localStorage.setItem("qm-side",open?"on":"off")}catch(e){}document.body.classList.toggle("side-off",!open);document.body.classList.remove("side-open")}
+  $("#sideBtn").setAttribute("aria-expanded",String(open));
+}
+const sideIsOpen=()=>narrow()?document.body.classList.contains("side-open"):!document.body.classList.contains("side-off");
+$("#sideBtn").addEventListener("click",()=>setSide(!sideIsOpen()));
+$("#sideClose").addEventListener("click",()=>{setSide(false);$("#sideBtn").focus()});
+$("#sideBack").addEventListener("click",()=>setSide(false));
+document.addEventListener("keydown",e=>{if(e.key==="Escape"&&narrow()&&sideIsOpen())setSide(false)});
+matchMedia("(max-width:899px)").addEventListener("change",()=>setSide(narrow()?false:sideWide));
+setSide(narrow()?false:sideWide);
+const toolsH=()=>document.documentElement.style.setProperty("--toolsH",$(".tools").offsetHeight+"px");
+new ResizeObserver(toolsH).observe($(".tools"));toolsH();
 $("#q").addEventListener("input",()=>render());$("#sort").addEventListener("change",()=>render());$("#stock").addEventListener("change",()=>render());
 $("#undo").addEventListener("click",async()=>{
   if(!needEditor())return;const u=undoStack.pop();$("#undo").disabled=!undoStack.length;if(!u)return;
@@ -329,6 +396,43 @@ $("#undo").addEventListener("click",async()=>{
 });
 
 $("#newCat").innerHTML=CATS.map(c=>`<option>${esc(c)}</option>`).join("");
+
+// ---------- "Log inventory" panel ----------
+$("#lgCat").innerHTML=`<option value="">Pick a category…</option>`+CATS.map(c=>`<option>${esc(c)}</option>`).join("");
+let lgKey="";
+function lgFill(){ // keep the suggestion list in step with the items (only rebuilt when names change)
+  const names=items().map(i=>i.n).sort((a,b)=>a.localeCompare(b)),k=names.join("|");
+  if(k!==lgKey){lgKey=k;$("#lgList").innerHTML=names.map(n=>`<option value="${esc(n)}">`).join("")}
+}
+const lgMatch=()=>{const v=$("#lgName").value.trim().toLowerCase();return v?items().find(i=>i.n.toLowerCase()===v)?.n||null:null};
+const lgSay=(t,cls)=>{const m=$("#lgMsg");m.textContent=t||"";m.className="msg"+(cls?" "+cls:"")};
+function lgUpdate(){
+  const v=$("#lgName").value.trim(),n=lgMatch(),cat=$("#lgCat"),mode=$("#lgMode");
+  if(n){cat.value=catOf(n);cat.disabled=true;cat.required=false;mode.disabled=false;
+    lgSay(`On the list · currently ${qty(n)}`)}
+  else{cat.disabled=false;cat.required=!!v;if(cat.disabled===false&&!v)cat.value="";mode.value="set";mode.disabled=true;
+    lgSay(v?"New item — pick a category and a starting count":"")}
+  $("#lgQty").placeholder=n&&mode.value!=="set"?"Amount":"Count";
+}
+$("#lgName").addEventListener("input",lgUpdate);lgUpdate();
+$("#lgMode").addEventListener("change",lgUpdate);
+$("#lgForm").addEventListener("submit",async e=>{
+  e.preventDefault();if(!needEditor())return;
+  const raw=$("#lgName").value.trim(),n=lgMatch(),num=Math.floor(Number($("#lgQty").value));
+  if(!raw)return;
+  if(!Number.isFinite(num)||num<0||$("#lgQty").value===""){$("#lgQty").reportValidity();return}
+  if(n){
+    const before=qty(n),mode=$("#lgMode").value;
+    if(mode==="set")await change(n,"set",num);else await change(n,"delta",mode==="add"?num:-num);
+    lgSay(`${n}: ${before} → ${qty(n)}`,"ok");
+  }else{
+    const c=$("#lgCat").value;if(!c){$("#lgCat").reportValidity();return}
+    await addItem(raw,c,num);
+    lgSay(rows.has(raw)?`Added new item “${raw}” (${c}) with ${num}`:"",rows.has(raw)?"ok":"");
+  }
+  const keep=$("#lgMsg").textContent,cls=$("#lgMsg").className;
+  $("#lgForm").reset();lgUpdate();$("#lgMsg").textContent=keep;$("#lgMsg").className=cls;$("#lgName").focus();
+});
 $("#addBtn").addEventListener("click",()=>{if(!needEditor())return;$("#addForm").reset();$("#addDlg").showModal();$("#newName").focus()});
 $("#addForm").addEventListener("submit",e=>{e.preventDefault();const n=$("#newName").value.trim();if(!n)return;
   if(items().some(i=>i.n.toLowerCase()===n.toLowerCase())){$("#newName").setCustomValidity("Already in the list");$("#newName").reportValidity();return}
