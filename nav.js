@@ -1,4 +1,5 @@
 // Wayfair Town site menu: a collapsible bar on the far left of every page.
+// After changing this file, raise the ?v= number in each page's <script src="nav.js?v=..."> so browsers fetch the new copy.
 // To add, rename or reorder pages, edit LINKS below. The menu has its own fixed colours
 // (the --wn-* values at the top of the styles), so it looks the same on every page. Each page loads this file with
 //   <script src="nav.js" defer></script>

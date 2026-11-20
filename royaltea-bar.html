@@ -12,7 +12,7 @@
   // To preview another one without changing it, add ?palette=tartan (etc.) to the page address.
   try{const p=new URLSearchParams(location.search).get("palette");if(/^(highland|heather|tartan|loch|shortbread)$/.test(p||""))document.documentElement.dataset.palette=p}catch(e){}
 </script>
-<script src="nav.js" defer></script>
+<script src="nav.js?v=2" defer></script>
 <style>
 /* Highland Evening: dark moss ground, loch blue, lantern amber, cream. Older light schemes kept below. */
 :root{color-scheme:light}
