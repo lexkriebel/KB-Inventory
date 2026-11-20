@@ -112,7 +112,6 @@ textarea{font:14px/1.4 ui-monospace,monospace;width:100%;min-height:220px;border
   <button class="btn edonly" id="addBtn">Add item</button>
   <button class="btn" id="expBtn">Export</button>
   <button class="btn" id="logBtn">Recent changes</button>
-  <button class="btn" id="acctBtn">Sign in</button>
   <span class="status" id="status" role="status"></span>
 </div></div>
 
@@ -169,27 +168,6 @@ textarea{font:14px/1.4 ui-monospace,monospace;width:100%;min-height:220px;border
   <div class="drow"><button type="button" class="btn" data-close>Close</button></div>
 </form></dialog>
 
-<dialog id="authDlg"><form id="authForm">
-  <h3 id="authTitle">Sign in to edit</h3>
-  <div id="authOut" style="display:grid;gap:10px">
-    <p class="sub" style="margin:0">Anyone can view the ledger. Only approved editors can change it.</p>
-    <label>Email<input id="aEmail" type="email" required autocomplete="email" autocapitalize="off" style="width:100%"></label>
-    <label>Password<input id="aPass" type="password" autocomplete="current-password" style="width:100%"></label>
-    <div class="drow"><button type="button" class="btn" data-close>Cancel</button><button class="btn pri" id="aPwBtn">Sign in</button></div>
-    <div class="or">or</div>
-    <div class="drow"><button type="button" class="btn" id="aLinkBtn">Email me a sign-in link</button></div>
-  </div>
-  <div id="authIn" style="display:grid;gap:10px" hidden>
-    <p class="sub" style="margin:0" id="aWho"></p>
-    <label>Set a new password (optional)<input id="aNewPass" type="password" minlength="6" autocomplete="new-password" style="width:100%"></label>
-    <div class="drow">
-      <button type="button" class="btn" id="aSetPw">Save password</button>
-      <button type="button" class="btn" id="aOut">Sign out</button>
-      <button type="button" class="btn pri" data-close>Done</button>
-    </div>
-  </div>
-  <p class="msg" id="aMsg" aria-live="polite"></p>
-</form></dialog>
 
 <script>
 {
@@ -242,7 +220,7 @@ function showState(){
   if(lastErr)return status(lastErr,true);
   if(busy)return status("Saving…");
   const conn=live?"Live":(loaded?"Reconnecting…":"Connecting…");
-  if(!me)return status(`${conn} · view only — sign in to edit`);
+  if(!me)return status(`${conn} · view only · organizers sign in on the Home page`);
   if(!me.editor)return status(`${conn} · signed in as ${me.email} · not an approved editor yet`,true);
   status(`${conn} · editing as ${me.name||me.email}`);
 }
@@ -280,7 +258,7 @@ function fail(e){console.error(e);lastErr=friendly(e);showState();setTimeout(()=
 async function rpc(fn,args){const {data,error}=await sb.rpc(fn,args);if(error)throw error;return data}
 const pend=(n,d)=>{pending.set(n,(pending.get(n)||0)+d);if(!pending.get(n))pending.delete(n)};
 function needEditor(){if(canEdit())return true;
-  if(!sb)status("Not connected to Supabase yet — see SETUP.md",true);else if(!me)openAuth();else showState();
+  if(!sb)status("Not connected to Supabase yet — see SETUP.md",true);else if(!me)status("To make changes, sign in on the Home page.",true);else showState();
   render();return false}
 function pushUndo(u){undoStack.push(u);if(undoStack.length>50)undoStack.shift();$("#undo").disabled=false}
 
@@ -453,35 +431,12 @@ async function loadLog(){
 }
 $("#logBtn").addEventListener("click",()=>{$("#logDlg").showModal();loadLog()});
 
-// ---------- sign in ----------
-const amsg=(t,bad)=>{$("#aMsg").textContent=t||"";$("#aMsg").classList.toggle("bad",!!bad)};
-function openAuth(){
-  amsg("");const signed=!!me;$("#authOut").hidden=signed;$("#authIn").hidden=!signed;
-  $("#authTitle").textContent=signed?"Your account":"Sign in to edit";
-  $("#aEmail").required=!signed;
-  if(signed)$("#aWho").textContent=`Signed in as ${me.email}. `+(me.editor?"You can edit the inventory.":"You're not on the editors list yet — ask whoever runs the inventory to add this email.");
-  $("#authDlg").showModal();
-}
-$("#acctBtn").addEventListener("click",()=>{if(!sb){status("Not connected to Supabase yet — see SETUP.md",true);return}openAuth()});
-$("#authForm").addEventListener("submit",async e=>{e.preventDefault();if(me)return;
-  const email=$("#aEmail").value.trim(),password=$("#aPass").value;
-  if(!password){amsg("Type your password, or use “Email me a sign-in link”.",true);return}
-  amsg("Signing in…");const {error}=await sb.auth.signInWithPassword({email,password});
-  if(error)amsg(/invalid/i.test(error.message)?"Email or password is wrong.":error.message,true);else{amsg("");$("#aPass").value="";$("#authDlg").close()}});
-$("#aLinkBtn").addEventListener("click",async()=>{
-  const email=$("#aEmail").value.trim();if(!$("#aEmail").checkValidity()||!email){amsg("Type your email first.",true);return}
-  amsg("Sending…");const {error}=await sb.auth.signInWithOtp({email,options:{emailRedirectTo:location.origin+location.pathname}});
-  amsg(error?(/rate|limit/i.test(error.message)?"Too many emails sent recently — wait a while, or sign in with a password.":error.message):"Check your email and open the link on this device.",!!error)});
-$("#aSetPw").addEventListener("click",async()=>{const p=$("#aNewPass").value;if(p.length<6){amsg("Use at least 6 characters.",true);return}
-  const {error}=await sb.auth.updateUser({password:p});amsg(error?error.message:"Password saved. You can sign in with it next time.",!!error);if(!error)$("#aNewPass").value=""});
-$("#aOut").addEventListener("click",async()=>{await sb.auth.signOut();$("#authDlg").close()});
-
+// ---------- who is signed in (organizers sign in on the Home page) ----------
 async function checkMe(session){
   const u=session?.user;
   if(!u){me=null;undoStack.length=0}
   else{me={email:u.email,editor:false,name:""};
     try{const w=await rpc("whoami",{});me.editor=!!w.editor;me.name=w.name||""}catch(e){console.error(e)}}
-  $("#acctBtn").textContent=me?"Account":"Sign in";
   render();showState();
 }
 

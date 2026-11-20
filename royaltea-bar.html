@@ -113,7 +113,6 @@ input,select{font:16px "Alegreya Sans",sans-serif;min-height:44px;border-radius:
   <label class="chk"><input type="checkbox" id="needOnly"> Still needed only</label>
   <button class="btn edonly" id="addItemBtn">Add item</button>
   <button class="btn warn edonly" id="clearBtn">Clear all sign-ups</button>
-  <button class="btn" id="acctBtn">Organizer sign in</button>
   <span class="status" id="status" role="status">Loading…</span>
 </div></div>
 
@@ -170,21 +169,6 @@ input,select{font:16px "Alegreya Sans",sans-serif;min-height:44px;border-radius:
   <div class="drow"><button type="button" class="btn warn left" id="iDel">Delete item</button><button type="button" class="btn" data-close>Cancel</button><button class="btn pri">Save</button></div>
 </form></dialog>
 
-<!-- organizer sign in -->
-<dialog id="authDlg"><form id="authForm">
-  <h2 id="authTitle">Organizer sign in</h2>
-  <div id="authOut" style="display:grid;gap:12px">
-    <p class="note">Signing up to bring something doesn't need an account. This is only for organizers who manage the sheet.</p>
-    <label>Email<input id="aEmail" type="email" autocomplete="email" autocapitalize="off"></label>
-    <label>Password<input id="aPass" type="password" autocomplete="current-password"></label>
-    <div class="drow"><button type="button" class="btn" data-close>Cancel</button><button class="btn pri">Sign in</button></div>
-  </div>
-  <div id="authIn" hidden style="display:grid;gap:12px">
-    <p id="aWho" style="margin:0"></p>
-    <div class="drow"><button type="button" class="btn" id="aOut">Sign out</button><button type="button" class="btn pri" data-close>Done</button></div>
-  </div>
-  <p class="msg" id="aMsg" aria-live="polite"></p>
-</form></dialog>
 
 <script>
 {
@@ -200,7 +184,7 @@ const selected=new Set();
 const taken=id=>signups.filter(s=>s.item_id===id).reduce((a,s)=>a+s.qty,0);
 const left=it=>Math.max(0,it.needed-taken(it.id));
 const status=(t,bad)=>{const s=$("#status");s.textContent=t;s.classList.toggle("bad",!!bad)};
-const showState=()=>status(!sb?"Not connected":me?.editor?`Organizer · ${me.name||me.email}`:me?"Signed in · not an organizer":"Live",!sb||(me&&!me.editor));
+const showState=()=>status(!sb?"Not connected":me?.editor?`Organizer · ${me.name||me.email}`:me?"Signed in · not an organizer":"Live · organizers sign in on the Home page",!sb||(me&&!me.editor));
 
 // ---------- drawing ----------
 function render(){
@@ -322,22 +306,11 @@ $("#clearBtn").addEventListener("click",async()=>{
   if(!confirm(`Clear all ${signups.length} sign-ups and start a fresh sheet? The item list stays. This can't be undone.`))return;
   const {error}=await sb.rpc("bar_clear_signups");if(error){status("Couldn't clear — try again.",true);return}loadAll()});
 
-// ---------- organizer sign in ----------
-const amsg=(t,bad)=>{$("#aMsg").textContent=t||"";$("#aMsg").className="msg"+(bad?" bad":"")};
-$("#acctBtn").addEventListener("click",()=>{if(!sb)return;amsg("");$("#authOut").hidden=!!me;$("#authIn").hidden=!me;
-  $("#authTitle").textContent=me?"Your account":"Organizer sign in";
-  if(me)$("#aWho").textContent=`Signed in as ${me.email}. `+(me.editor?"You can manage the sheet.":"This email isn't on the editors list.");
-  $("#authDlg").showModal()});
-$("#authForm").addEventListener("submit",async e=>{e.preventDefault();if(me)return;
-  const email=$("#aEmail").value.trim(),password=$("#aPass").value;if(!email||!password){amsg("Enter your email and password.",true);return}
-  amsg("Signing in…");const {error}=await sb.auth.signInWithPassword({email,password});
-  if(error)amsg(/invalid/i.test(error.message)?"Email or password is wrong.":error.message,true);else{$("#aPass").value="";$("#authDlg").close()}});
-$("#aOut").addEventListener("click",async()=>{await sb.auth.signOut();$("#authDlg").close()});
+// ---------- who is signed in (organizers sign in on the Home page) ----------
 async function checkMe(session){
   const u=session?.user;
   if(!u){me=null;realNames=new Map()}
   else{me={email:u.email,editor:false,name:""};try{const {data}=await sb.rpc("whoami");me.editor=!!data?.editor;me.name=data?.name||""}catch(e){}}
-  $("#acctBtn").textContent=me?"Account":"Organizer sign in";
   await loadAll();showState();
 }
 

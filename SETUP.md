@@ -5,7 +5,7 @@
 These steps connect the inventory page to a free Supabase database. When you're done:
 
 - **Anyone with the link** can see the live counts. They don't need to log in.
-- **Approved editors** sign in with their email and can change counts. Everyone else sees the change within a second or two.
+- **Approved editors** sign in once on the **Home page** (Organizer sign in) and can then change counts on every page. Everyone else sees the change within a second or two.
 - Every change is logged: who, which item, old → new, when. You can see it under **Recent changes** on the page.
 
 It takes about 20 minutes. You don't need to install anything. Everything happens in your web browser.
@@ -64,7 +64,7 @@ Supabase's built-in email sender is very limited on the free plan. It only sends
 2. Click **Add user** → **Create new user**.
 3. Enter the person's **email** and a starting **password** (at least 6 characters). Tick **Auto Confirm User**.
 4. Click **Create user**.
-5. Tell the person their password privately. Once signed in, they can change it under **Account** on the inventory page.
+5. Tell the person their password privately. Once signed in on the Home page, they can change it there under **Organizer**.
 
 Also make sure that email is in the **editors** table (step 3). Creating a user lets them sign in. The **editors** table is what lets them edit.
 
@@ -114,18 +114,18 @@ This is where people land after clicking a sign-in link in their email.
 
 ## 8. Test it
 
-1. Open `https://lexkriebel.github.io/KB-Inventory/inventory.html` in a **private/incognito window**. You should see the counts. Next to the toolbar, the status should say **Live · view only — sign in to edit**. There should be no − / + buttons.
-2. In a normal window, click **Sign in**, enter your email and password, and click **Sign in**. The status should change to **Live · editing as (your name)**, and the − / + buttons appear.
+1. Open `https://lexkriebel.github.io/KB-Inventory/inventory.html` in a **private/incognito window**. You should see the counts. Next to the toolbar, the status should say **Live · view only · organizers sign in on the Home page**.
+2. In a normal window, open the Home page (`https://lexkriebel.github.io/KB-Inventory/`), enter your email and password under **Organizer sign in** and click **Sign in**. Then open **Town Inventory**: the status should say **Live · editing as (your name)**, and the **Log inventory** box appears.
 3. Press **+** on an item. Watch the private window, or your phone: the number should change there within a couple of seconds, without refreshing.
 4. Click **Recent changes**. Your edit should be listed with your name.
 5. In Supabase, open **Table Editor** → **change_log** to see the full log, including email addresses. Visitors to the page only see names, never emails.
-6. Optional: sign in as someone who is *not* in the **editors** table. The page should say **not an approved editor yet**, and the controls stay hidden.
+6. Optional: sign in on Home as someone who is *not* in the **editors** table. Home should say the email isn't on the editors list, and the other pages stay view-only.
 
 ## 9. If the old GitHub version was used after November 20, 2026
 
 The counts in step 2 were copied from `inventory.json` on November 20, 2026. If anyone changed counts with the old page after that:
 
-1. Sign in on the new page as an editor.
+1. Sign in on the Home page as an editor, then open Town Inventory.
 2. Click **Export** → **Load old inventory.json**.
 3. Confirm. This replaces the current counts with whatever is in `inventory.json`, and it can be undone with **Undo**.
 
@@ -157,7 +157,7 @@ You can run `bar-setup.sql` again whenever it changes. It never removes sign-ups
 How it works:
 
 - **Anyone** can tap items, press **Confirm selection**, and enter their real name, character name and how many they're bringing. No account needed.
-- The sheet shows **character names only**. Real names are visible only to editors, who sign in with **Organizer sign in** on the bar page.
+- The sheet shows **character names only**. Real names are visible only to editors who are signed in (sign in on the Home page).
 - After someone confirms, only editors can change things. Signed-in editors can:
   - click a name to change or remove that sign-up
   - use **Edit item** or **Add item** to change the list, including the real-world translation shown in brackets, e.g. Dew of the Mountain (Mt Dew)

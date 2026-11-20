@@ -6,6 +6,7 @@
 <title>Wayfair Town</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link href="https://fonts.googleapis.com/css2?family=Cinzel:wght@600;800&family=Alegreya+Sans:wght@400;500;700&display=swap" rel="stylesheet">
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.118.0/dist/umd/supabase.js"></script>
 <script src="nav.js?v=3" defer></script>
 <style>
 :root{color-scheme:dark;
@@ -25,6 +26,19 @@ a.card:hover{border-color:var(--gold)}a.card:focus-visible{outline:2px solid var
 .grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(220px,1fr));gap:12px}
 .tag{display:inline-block;margin-left:8px;font:500 12px "Alegreya Sans",sans-serif;color:var(--silver);border:1px solid var(--silver);border-radius:99px;padding:0 8px;vertical-align:middle}
 .tag.soon{color:var(--mute);border-color:var(--rule)}
+[hidden]{display:none!important}
+.admin{margin-top:28px;max-width:520px;border-top-color:var(--gold)}
+.admin h2{font:600 19px Cinzel,serif;margin:0 0 4px;color:var(--gold)}
+.admin form,.admin .in{display:grid;gap:10px;margin-top:10px}
+.admin label{display:grid;gap:4px;font-weight:500}
+.admin input{font:16px "Alegreya Sans",sans-serif;min-height:44px;border-radius:9px;border:1px solid var(--rule);background:var(--bg);color:var(--ink);padding:0 12px;width:100%}
+.btn{font:500 16px "Alegreya Sans",sans-serif;min-height:44px;padding:0 16px;border-radius:9px;border:1px solid var(--rule);background:var(--panel2);color:var(--ink);cursor:pointer}
+.btn:hover{border-color:var(--gold)}.btn.pri{background:var(--gold);border-color:var(--gold);color:#2a1019;font-weight:700}
+.admin input:focus-visible,.btn:focus-visible{outline:2px solid var(--gold);outline-offset:1px}
+.row{display:flex;gap:8px;flex-wrap:wrap;align-items:center}
+.or{display:flex;align-items:center;gap:10px;color:var(--mute);font-size:13px}.or:before,.or:after{content:"";flex:1;border-top:1px solid var(--rule)}
+.msg{margin:0;font-size:14px;min-height:1.3em;color:var(--mute)}.msg.bad{color:#ff9a9a}.msg.ok{color:var(--gold)}
+.who b{color:var(--gold)}
 </style>
 </head>
 <body>
@@ -39,6 +53,64 @@ a.card:hover{border-color:var(--gold)}a.card:focus-visible{outline:2px solid var
     <a class="card" href="crafting.html"><h2>Crafting <span class="tag soon">Soon</span></h2><p>Recipes and what they need.</p></a>
     <a class="card" href="archives.html"><h2>Town Archives <span class="tag soon">Soon</span></h2><p>Records and history of the town.</p></a>
   </div>
+
+  <section class="card admin" aria-labelledby="adminTitle">
+    <h2 id="adminTitle">Organizer sign in</h2>
+    <p class="sub" id="adminSub">Only needed to edit the Town Inventory or manage the Royaltea Bar sheet. Everyone can view without signing in.</p>
+    <form id="authForm" autocomplete="on">
+      <label>Email<input id="aEmail" type="email" required autocomplete="email" autocapitalize="off"></label>
+      <label>Password<input id="aPass" type="password" autocomplete="current-password"></label>
+      <div class="row"><button class="btn pri">Sign in</button></div>
+      <div class="or">or</div>
+      <div class="row"><button type="button" class="btn" id="aLinkBtn">Email me a sign-in link</button></div>
+    </form>
+    <div class="in" id="authIn" hidden>
+      <p class="who" id="aWho" style="margin:0"></p>
+      <div class="row"><a class="btn" href="inventory.html" style="display:inline-flex;align-items:center;text-decoration:none">Go to Town Inventory</a><a class="btn" href="royaltea-bar.html" style="display:inline-flex;align-items:center;text-decoration:none">Go to Royaltea Bar</a></div>
+      <label>Set a new password (optional)<input id="aNewPass" type="password" minlength="6" autocomplete="new-password"></label>
+      <div class="row"><button type="button" class="btn" id="aSetPw">Save password</button><button type="button" class="btn" id="aOut">Sign out</button></div>
+    </div>
+    <p class="msg" id="aMsg" aria-live="polite"></p>
+  </section>
 </div></main>
+<script>
+{
+// Same Supabase project and public key as the other pages. Signing in here unlocks editing on every page.
+const SUPABASE_URL = "https://mrizrtptqmryiiffakah.supabase.co";
+const SUPABASE_ANON_KEY = "sb_publishable_5RgXb2Cq79861hFT7k_gbQ_sUzPWD3p";
+const $=s=>document.querySelector(s);
+const msg=(t,cls)=>{$("#aMsg").textContent=t||"";$("#aMsg").className="msg"+(cls?" "+cls:"")};
+if(!window.supabase){msg("Couldn't load sign-in — check your connection and refresh.","bad");$("#authForm").hidden=true}
+else{
+  const sb=window.supabase.createClient(SUPABASE_URL,SUPABASE_ANON_KEY,{auth:{persistSession:true,detectSessionInUrl:true}});
+  const hp=new URLSearchParams(location.hash.slice(1));
+  if(hp.get("error_description")){msg("Sign-in link problem: "+hp.get("error_description"),"bad");history.replaceState(null,"",location.pathname+location.search)}
+  async function show(session){
+    const u=session?.user;
+    $("#authForm").hidden=!!u;$("#authIn").hidden=!u;
+    if(!u){$("#adminTitle").textContent="Organizer sign in";$("#adminSub").hidden=false;return}
+    $("#adminTitle").textContent="Organizer";$("#adminSub").hidden=true;
+    let w=null;try{const r=await sb.rpc("whoami");w=r.data}catch(e){}
+    const esc=s=>String(s??"").replace(/[&<>"']/g,m=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[m]));
+    $("#aWho").innerHTML=w?.editor
+      ?`Signed in as <b>${esc(w.name||u.email)}</b> (${esc(u.email)}). You can edit the Town Inventory and manage the Royaltea Bar sheet.`
+      :`Signed in as <b>${esc(u.email)}</b>, but this email isn't on the editors list yet, so you can only view. Ask whoever runs the site to add it.`;
+  }
+  sb.auth.onAuthStateChange((ev,session)=>{setTimeout(()=>show(session),0)});
+  $("#authForm").addEventListener("submit",async e=>{e.preventDefault();
+    const email=$("#aEmail").value.trim(),password=$("#aPass").value;
+    if(!password){msg("Type your password, or use “Email me a sign-in link”.","bad");return}
+    msg("Signing in…");const {error}=await sb.auth.signInWithPassword({email,password});
+    if(error)msg(/invalid/i.test(error.message)?"Email or password is wrong.":error.message,"bad");else{msg("");$("#aPass").value=""}});
+  $("#aLinkBtn").addEventListener("click",async()=>{
+    const email=$("#aEmail").value.trim();if(!email||!$("#aEmail").checkValidity()){msg("Type your email first.","bad");return}
+    msg("Sending…");const {error}=await sb.auth.signInWithOtp({email,options:{emailRedirectTo:location.origin+location.pathname}});
+    msg(error?(/rate|limit/i.test(error.message)?"Too many emails sent recently — wait a while, or sign in with a password.":error.message):"Check your email and open the link on this device.",error?"bad":"ok")});
+  $("#aSetPw").addEventListener("click",async()=>{const p=$("#aNewPass").value;if(p.length<6){msg("Use at least 6 characters.","bad");return}
+    const {error}=await sb.auth.updateUser({password:p});msg(error?error.message:"Password saved. You can sign in with it next time.",error?"bad":"ok");if(!error)$("#aNewPass").value=""});
+  $("#aOut").addEventListener("click",async()=>{await sb.auth.signOut();msg("Signed out.","ok")});
+}
+}
+</script>
 </body>
 </html>
