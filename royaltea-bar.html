@@ -1,38 +1,336 @@
 <!DOCTYPE html>
-<html lang="en">
+<html lang="en" data-palette="heather">
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width,initial-scale=1">
 <title>Royaltea Bar · Wayfair Town</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
-<link href="https://fonts.googleapis.com/css2?family=Cinzel:wght@600;800&family=Alegreya+Sans:wght@400;500;700&display=swap" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:wght@600;700&family=Lora:wght@400;500;600&display=swap" rel="stylesheet">
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.118.0/dist/umd/supabase.js"></script>
+<script>
+  // Colour scheme. Change data-palette above to switch for everyone: heather, tartan, loch or shortbread.
+  // To preview another one without changing it, add ?palette=tartan (etc.) to the page address.
+  try{const p=new URLSearchParams(location.search).get("palette");if(/^(heather|tartan|loch|shortbread)$/.test(p||""))document.documentElement.dataset.palette=p}catch(e){}
+</script>
 <script src="nav.js" defer></script>
 <style>
-:root{color-scheme:dark;
---bg:#07070d;--panel:#13122a;--panel2:#1b1940;--ink:#e9e7f7;--mute:#9b97c4;--rule:#29265a;
---blue:#5aa9ff;--purple:#a78bfa;--green:#3ddc97}
+/* Scottish cottagecore: linen paper, tartan header band, heather / moss / loch / bracken accents */
+:root{color-scheme:light}
+[data-palette=heather]{--bg:#f6f0e4;--ink:#3b2f2a;--mute:#76665a;--card:#fffaf1;--rule:#e2d6c2;--sel:#f1e8f3;--acc:#7b5a8f;--onacc:#fff;--acc2:#5f6d42;--onacc2:#fff;
+  --hdbg:#e8dcc4;--t1:#7b5a8f24;--t2:#5f6d4233;--title:#3b2f2a;--warn:#a23b2a;--nav-bg:#eee5d3}
+[data-palette=tartan]{--bg:#f4ecda;--ink:#2b2420;--mute:#6b5e50;--card:#fffaf0;--rule:#e0d2b6;--sel:#f7e3e3;--acc:#9b2335;--onacc:#fff;--acc2:#2f4f3a;--onacc2:#fff;
+  --hdbg:#2f4f3a;--t1:#9b233566;--t2:#c9a22788;--title:#fbf3e2;--warn:#9b2335;--nav-bg:#ebe0c8}
+[data-palette=loch]{--bg:#eef0ec;--ink:#2c3a40;--mute:#5f6e73;--card:#fbfcfa;--rule:#d6ddd8;--sel:#e3eeec;--acc:#3f6f6c;--onacc:#fff;--acc2:#8a6f96;--onacc2:#fff;
+  --hdbg:#d9e1df;--t1:#3f6f6c22;--t2:#8a6f9633;--title:#2c3a40;--warn:#a23b2a;--nav-bg:#e3e8e4}
+[data-palette=shortbread]{--bg:#f5e9d0;--ink:#3a2a1c;--mute:#76604a;--card:#fff8ea;--rule:#e6d3ad;--sel:#f6e2cf;--acc:#a8572a;--onacc:#fff;--acc2:#5b6b45;--onacc2:#fff;
+  --hdbg:#ead6b0;--t1:#a8572a26;--t2:#5b6b4533;--title:#3a2a1c;--warn:#9b2335;--nav-bg:#eedfc0}
+:root{--nav-ink:var(--ink);--nav-mute:var(--mute);--nav-rule:var(--rule);--nav-hover:var(--sel);--nav-icon:var(--acc2);--nav-active:var(--acc);--nav-brand:var(--acc);--nav-font:"Cormorant Garamond"}
 *{box-sizing:border-box;min-width:0}
-body{margin:0;min-height:100vh;background:var(--bg);color:var(--ink);font:16px/1.5 "Alegreya Sans",system-ui,sans-serif;overflow-x:clip}
-header{padding:clamp(20px,3vw,40px) max(4vw,14px);background:radial-gradient(ellipse at 15% 0%,#1a1f5a 0,transparent 60%),radial-gradient(ellipse at 90% 10%,#2a1452 0,transparent 55%)}
-.wrap{max-width:1000px;margin:0 auto}
-h1{font:800 clamp(28px,4.4vw,42px)/1.05 Cinzel,serif;margin:0 0 6px;text-wrap:balance;color:var(--purple);background:linear-gradient(90deg,var(--blue),var(--purple) 55%,var(--green));-webkit-background-clip:text;background-clip:text;-webkit-text-fill-color:transparent}
-.sub{color:var(--mute);margin:0}
-main{padding:8px max(4vw,14px) 48px}
-.card{display:block;background:var(--panel);border:1px solid var(--rule);border-radius:14px;padding:18px 20px;color:var(--ink);text-decoration:none}
-a.card:hover{border-color:var(--purple)}a.card:focus-visible{outline:2px solid var(--green);outline-offset:2px}
-.card h2{font:600 19px Cinzel,serif;margin:0 0 4px;color:var(--purple)}.card p{margin:0;color:var(--mute)}
-.grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(220px,1fr));gap:12px}
-.tag{display:inline-block;margin-left:8px;font:500 12px "Alegreya Sans",sans-serif;color:var(--green);border:1px solid var(--green);border-radius:99px;padding:0 8px;vertical-align:middle}
-.tag.soon{color:var(--mute);border-color:var(--rule)}
+[hidden]{display:none!important}
+body{margin:0;min-height:100vh;background:var(--bg);color:var(--ink);font:16px/1.5 Lora,Georgia,serif;overflow-x:clip}
+.hd{padding:clamp(22px,3.4vw,42px) max(4vw,16px) clamp(18px,2.4vw,28px);border-bottom:3px solid var(--acc);background:
+  repeating-linear-gradient(90deg,transparent 0 22px,var(--t1) 22px 30px,transparent 30px 44px,var(--t2) 44px 47px,transparent 47px 66px),
+  repeating-linear-gradient(0deg,transparent 0 22px,var(--t1) 22px 30px,transparent 30px 44px,var(--t2) 44px 47px,transparent 47px 66px),var(--hdbg)}
+.wrap{max-width:900px;margin:0 auto}
+h1{font:700 clamp(34px,5vw,52px)/1 "Cormorant Garamond",Georgia,serif;margin:0 0 6px;color:var(--title);text-wrap:balance}
+.hd p{margin:0;color:var(--title);opacity:.88}
+.tools{display:flex;flex-wrap:wrap;gap:8px;align-items:center;padding:14px 0 6px}
+.btn{font:600 15px/1 Lora,Georgia,serif;min-height:44px;padding:0 16px;border-radius:10px;border:1px solid var(--rule);background:var(--card);color:var(--ink);cursor:pointer}
+.btn:hover{border-color:var(--acc)}.btn.pri{background:var(--acc);border-color:var(--acc);color:var(--onacc)}
+.btn.warn{color:var(--warn)}.btn:disabled{opacity:.5;cursor:default}
+.btn:focus-visible,input:focus-visible,select:focus-visible,.pick:focus-visible{outline:2px solid var(--acc);outline-offset:2px}
+label.chk{display:flex;gap:8px;align-items:center;min-height:44px;cursor:pointer}
+label.chk input{width:18px;height:18px;accent-color:var(--acc)}
+.status{margin-left:auto;font-size:14px;color:var(--mute)}.status.bad{color:var(--warn)}
+.summary{font:600 15px Lora,serif;color:var(--acc2);margin:4px 0 12px}
+.list{display:grid;gap:8px;padding-bottom:120px}
+.item{background:var(--card);border:1px solid var(--rule);border-radius:12px}
+.item.sel{border:2px solid var(--acc);background:var(--sel)}
+.item.done{opacity:.72}
+.pick{all:unset;box-sizing:border-box;display:flex;justify-content:space-between;align-items:center;gap:12px;width:100%;padding:12px 14px;cursor:pointer;border-radius:12px}
+.item.done .pick{cursor:default}
+.box{flex:none;width:22px;height:22px;border-radius:6px;border:2px solid var(--rule);display:grid;place-items:center;font-size:14px;color:var(--onacc)}
+.item.sel .box{background:var(--acc);border-color:var(--acc)}
+.nm{flex:1}.nm b{font-weight:600;font-size:17px}.nm small{display:block;color:var(--mute);font-size:14px}
+.pill{flex:none;font:600 13px/1 Lora,serif;padding:6px 10px;border-radius:99px;background:var(--acc2);color:var(--onacc2);white-space:nowrap}
+.item.done .pill{background:transparent;color:var(--acc2);border:1px solid var(--acc2)}
+.who{display:flex;flex-wrap:wrap;gap:6px;padding:0 14px 12px 50px;margin-top:-4px}
+.who:empty{display:none}
+.chip{font:14px/1.2 Lora,serif;padding:5px 10px;border-radius:99px;border:1px solid var(--rule);background:var(--bg);color:var(--ink)}
+button.chip{cursor:pointer}button.chip:hover{border-color:var(--acc)}
+.chip i{font-style:normal;color:var(--mute)}
+.edit-item{font:13px Lora,serif;color:var(--mute);background:none;border:1px dashed var(--rule);border-radius:99px;padding:4px 10px;cursor:pointer}
+.empty{padding:40px 0;text-align:center;color:var(--mute)}
+.ed .edonly{display:revert}.edonly{display:none}
+.bar{position:fixed;left:0;right:0;bottom:0;z-index:30;background:var(--card);border-top:2px solid var(--acc);box-shadow:0 -6px 18px #0002;
+  padding:10px max(4vw,16px) calc(10px + env(safe-area-inset-bottom));transform:translateY(110%);transition:transform .2s}
+.bar.on{transform:none}
+.bar .wrap{display:flex;gap:10px;align-items:center;flex-wrap:wrap}
+.bar .count{flex:1;font-weight:600}
+@media(min-width:900px){.bar{left:var(--navW,0)}}
+dialog{border:1px solid var(--rule);border-radius:16px;background:var(--card);color:var(--ink);width:min(560px,94vw);padding:20px}
+dialog::backdrop{background:#2a1f1a99}
+dialog h2{font:700 26px/1.1 "Cormorant Garamond",serif;margin:0 0 6px;color:var(--acc)}
+dialog form{display:grid;gap:12px}
+dialog label{display:grid;gap:4px;font-weight:500}
+input,select{font:16px Lora,serif;min-height:44px;border-radius:10px;border:1px solid var(--rule);background:var(--bg);color:var(--ink);padding:0 12px;width:100%}
+.lines{display:grid;gap:8px;max-height:46vh;overflow:auto;padding:2px}
+.line{display:grid;grid-template-columns:1fr 90px;gap:10px;align-items:center;padding:8px 10px;border:1px solid var(--rule);border-radius:10px;background:var(--bg)}
+.line small{display:block;color:var(--mute);font-size:13px}
+.line input{text-align:right}
+.note{font-size:14px;color:var(--mute);margin:0}
+.msg{margin:0;font-size:14px;min-height:1.3em}.msg.bad{color:var(--warn)}.msg.ok{color:var(--acc2)}
+.drow{display:flex;gap:8px;justify-content:flex-end;flex-wrap:wrap}
+.drow .left{margin-right:auto}
+@media(prefers-reduced-motion:reduce){.bar{transition:none}}
 </style>
 </head>
 <body>
-<header><div class="wrap">
+<header class="hd"><div class="wrap">
   <h1>Royaltea Bar</h1>
-  <p class="sub">The town’s tea house.</p>
+  <p>Sign-up sheet · tap the things you'll bring, then confirm</p>
 </div></header>
-<main><div class="wrap">
-  <div class="card"><h2>Coming soon</h2><p>This page hasn’t been built yet.</p></div>
+
+<main style="padding:0 max(4vw,16px)"><div class="wrap">
+  <div class="tools">
+    <label class="chk"><input type="checkbox" id="needOnly"> Still needed only</label>
+    <button class="btn edonly" id="addItemBtn">Add item</button>
+    <button class="btn warn edonly" id="clearBtn">Clear all sign-ups</button>
+    <button class="btn" id="acctBtn">Organizer sign in</button>
+    <span class="status" id="status" role="status">Loading…</span>
+  </div>
+  <p class="summary" id="summary"></p>
+  <div class="list" id="list"></div>
 </div></main>
+
+<div class="bar" id="bar" aria-hidden="true"><div class="wrap">
+  <span class="count" id="selCount"></span>
+  <button class="btn" id="selClear" type="button">Clear</button>
+  <button class="btn pri" id="selGo" type="button">Confirm selection</button>
+</div></div>
+
+<!-- sign-up pop-up -->
+<dialog id="signDlg"><form id="signForm">
+  <h2>Confirm your sign-up</h2>
+  <label>Your real name<input id="realName" required maxlength="80" autocomplete="name"></label>
+  <label>Character name<input id="charName" required maxlength="80" autocomplete="off"></label>
+  <div>
+    <p class="note" style="margin-bottom:6px">How many are you bringing?</p>
+    <div class="lines" id="lines"></div>
+  </div>
+  <p class="note">Only your character name is shown on the sheet. Your real name is visible to organizers only. After you confirm, ask an organizer if you need to change anything.</p>
+  <p class="msg" id="signMsg" aria-live="polite"></p>
+  <div class="drow"><button type="button" class="btn" data-close>Back</button><button class="btn pri" id="signGo">Confirm sign-up</button></div>
+</form></dialog>
+
+<!-- thank-you -->
+<dialog id="thanksDlg"><form method="dialog">
+  <h2 id="thanksTitle">Thank you!</h2>
+  <p id="thanksText" style="margin:0"></p>
+  <div class="drow"><button class="btn pri">Done</button></div>
+</form></dialog>
+
+<!-- organizer: edit a sign-up -->
+<dialog id="editDlg"><form id="editForm">
+  <h2>Edit sign-up</h2>
+  <p class="note" id="editWhat"></p>
+  <label>Character name<input id="eChar" required maxlength="80"></label>
+  <label>Real name<input id="eReal" required maxlength="80"></label>
+  <label>How many<input id="eQty" type="number" min="1" required inputmode="numeric"></label>
+  <p class="msg" id="editMsg"></p>
+  <div class="drow"><button type="button" class="btn warn left" id="eDel">Remove sign-up</button><button type="button" class="btn" data-close>Cancel</button><button class="btn pri">Save</button></div>
+</form></dialog>
+
+<!-- organizer: add / edit an item -->
+<dialog id="itemDlg"><form id="itemForm">
+  <h2 id="itemTitle">Edit item</h2>
+  <label>Item<input id="iName" required maxlength="120"></label>
+  <label>How many needed<input id="iNeed" type="number" min="0" required inputmode="numeric"></label>
+  <label>Packaging<input id="iPack" maxlength="80" placeholder="e.g. 12pk can"></label>
+  <p class="msg" id="itemMsg"></p>
+  <div class="drow"><button type="button" class="btn warn left" id="iDel">Delete item</button><button type="button" class="btn" data-close>Cancel</button><button class="btn pri">Save</button></div>
+</form></dialog>
+
+<!-- organizer sign in -->
+<dialog id="authDlg"><form id="authForm">
+  <h2 id="authTitle">Organizer sign in</h2>
+  <div id="authOut" style="display:grid;gap:12px">
+    <p class="note">Signing up to bring something doesn't need an account. This is only for organizers who manage the sheet.</p>
+    <label>Email<input id="aEmail" type="email" autocomplete="email" autocapitalize="off"></label>
+    <label>Password<input id="aPass" type="password" autocomplete="current-password"></label>
+    <div class="drow"><button type="button" class="btn" data-close>Cancel</button><button class="btn pri">Sign in</button></div>
+  </div>
+  <div id="authIn" hidden style="display:grid;gap:12px">
+    <p id="aWho" style="margin:0"></p>
+    <div class="drow"><button type="button" class="btn" id="aOut">Sign out</button><button type="button" class="btn pri" data-close>Done</button></div>
+  </div>
+  <p class="msg" id="aMsg" aria-live="polite"></p>
+</form></dialog>
+
+<script>
+{
+// ===== Supabase connection (same project and public key as the inventory page) =====
+const SUPABASE_URL = "https://mrizrtptqmryiiffakah.supabase.co";
+const SUPABASE_ANON_KEY = "sb_publishable_5RgXb2Cq79861hFT7k_gbQ_sUzPWD3p";
+// =====================================================================================
+
+const $=s=>document.querySelector(s);
+const esc=s=>String(s??"").replace(/[&<>"']/g,m=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[m]));
+let sb=null,me=null,items=[],signups=[],realNames=new Map(),loaded=false;
+const selected=new Set();
+const taken=id=>signups.filter(s=>s.item_id===id).reduce((a,s)=>a+s.qty,0);
+const left=it=>Math.max(0,it.needed-taken(it.id));
+const status=(t,bad)=>{const s=$("#status");s.textContent=t;s.classList.toggle("bad",!!bad)};
+const showState=()=>status(!sb?"Not connected":me?.editor?`Organizer · ${me.name||me.email}`:me?"Signed in · not an organizer":"Live",!sb||(me&&!me.editor));
+
+// ---------- drawing ----------
+function render(){
+  document.body.classList.toggle("ed",!!me?.editor);
+  const only=$("#needOnly").checked;
+  for(const id of [...selected])if(!items.some(i=>i.id===id&&left(i)>0))selected.delete(id);
+  const open=items.filter(i=>left(i)>0).length;
+  $("#summary").textContent=loaded?(items.length?(open?`${open} of ${items.length} items still needed`:`Everything is covered — thank you all!`):""):"";
+  const shown=items.filter(i=>!only||left(i)>0);
+  if(!loaded){$("#list").innerHTML=`<p class="empty">Loading the sheet…</p>`}
+  else if(!shown.length){$("#list").innerHTML=`<p class="empty">${items.length?"Everything is covered!":"No items on the sheet yet."}</p>`}
+  else $("#list").innerHTML=shown.map(it=>{
+    const l=left(it),done=l===0,sel=selected.has(it.id);
+    const mine=signups.filter(s=>s.item_id===it.id);
+    const chips=mine.map(s=>{const rn=realNames.get(s.id);
+      const t=`${esc(s.character_name)}${rn?` <i>(${esc(rn)})</i>`:""} ×${s.qty}`;
+      return me?.editor?`<button class="chip" data-edit="${s.id}" title="Edit this sign-up">${t} ✎</button>`:`<span class="chip">${t}</span>`}).join("");
+    return `<div class="item${sel?" sel":""}${done?" done":""}">
+      <button class="pick" data-id="${it.id}" aria-pressed="${sel}" ${done?'aria-disabled="true"':""}>
+        <span class="box" aria-hidden="true">${sel?"✓":""}</span>
+        <span class="nm"><b>${esc(it.name)}</b><small>${esc(it.packaging||"")}${it.packaging?" · ":""}need ${it.needed}</small></span>
+        <span class="pill">${done?"Covered ✓":`${l} left`}</span>
+      </button>
+      <div class="who">${chips}${me?.editor?`<button class="edit-item" data-item="${it.id}">Edit item</button>`:""}</div>
+    </div>`}).join("");
+  const n=selected.size;
+  $("#bar").classList.toggle("on",n>0);$("#bar").setAttribute("aria-hidden",String(!n));
+  $("#selCount").textContent=`${n} item${n===1?"":"s"} selected`;
+}
+
+// ---------- loading ----------
+async function loadAll(){
+  if(!sb)return;
+  const [a,b]=await Promise.all([
+    sb.from("bar_items").select("id,name,needed,packaging,sort").order("sort").order("id"),
+    sb.from("bar_signups").select("id,item_id,character_name,qty,created_at").order("id")]);
+  if(a.error||b.error){status("Couldn't load the sheet — has bar-setup.sql been run?",true);console.error(a.error||b.error);return}
+  items=a.data;signups=b.data;loaded=true;
+  if(me?.editor){const {data,error}=await sb.rpc("bar_admin_signups");if(!error)realNames=new Map(data.map(r=>[r.id,r.real_name]))}
+  render();showState();
+}
+let t=null;const soon=()=>{clearTimeout(t);t=setTimeout(loadAll,250)};
+
+// ---------- choosing items ----------
+$("#list").addEventListener("click",e=>{
+  const pick=e.target.closest(".pick");
+  if(pick){const id=+pick.dataset.id,it=items.find(i=>i.id===id);if(!it||left(it)===0)return;
+    selected.has(id)?selected.delete(id):selected.add(id);render();
+    const again=document.querySelector(`.pick[data-id="${id}"]`);if(again)again.focus();return}
+  const ed=e.target.closest("[data-edit]");if(ed)return openEdit(+ed.dataset.edit);
+  const ei=e.target.closest("[data-item]");if(ei)return openItem(+ei.dataset.item);
+});
+$("#needOnly").addEventListener("change",render);
+$("#selClear").addEventListener("click",()=>{selected.clear();render()});
+document.querySelectorAll("[data-close]").forEach(b=>b.addEventListener("click",()=>b.closest("dialog").close()));
+
+// ---------- sign-up pop-up ----------
+$("#selGo").addEventListener("click",()=>{
+  if(!selected.size)return;
+  try{const s=JSON.parse(localStorage.getItem("rb-me")||"{}");if(s.r&&!$("#realName").value)$("#realName").value=s.r;if(s.c&&!$("#charName").value)$("#charName").value=s.c}catch(e){}
+  $("#lines").innerHTML=items.filter(i=>selected.has(i.id)).map(it=>`<label class="line"><span>${esc(it.name)}<small>${esc(it.packaging||"")}${it.packaging?" · ":""}up to ${left(it)}</small></span>
+    <input type="number" min="1" max="${left(it)}" value="1" required inputmode="numeric" data-id="${it.id}" aria-label="How many ${esc(it.name)}"></label>`).join("");
+  $("#signMsg").textContent="";$("#signMsg").className="msg";$("#signGo").disabled=false;
+  $("#signDlg").showModal();($("#realName").value?$("#charName").value?$("#lines input"):$("#charName"):$("#realName")).focus();
+});
+$("#signForm").addEventListener("submit",async e=>{
+  e.preventDefault();if(!sb)return;
+  const real=$("#realName").value.trim(),char=$("#charName").value.trim();
+  const list=[...document.querySelectorAll("#lines input")].map(i=>({item_id:+i.dataset.id,qty:Math.floor(+i.value)}));
+  if(!real||!char||list.some(l=>!(l.qty>=1)))return;
+  $("#signGo").disabled=true;$("#signMsg").className="msg";$("#signMsg").textContent="Saving…";
+  const {error}=await sb.rpc("bar_sign_up",{p_real_name:real,p_character:char,p_items:list});
+  $("#signGo").disabled=false;
+  if(error){const m=error.message||"";const tm=m.match(/too_many: (.*)/);
+    $("#signMsg").className="msg bad";
+    $("#signMsg").textContent=tm?`Someone just signed up too — ${tm[1]}. Please lower the number.`:"Couldn't save — check your connection and try again.";
+    await loadAll();
+    for(const i of document.querySelectorAll("#lines input")){const it=items.find(x=>x.id===+i.dataset.id);if(it)i.max=left(it)}
+    return}
+  try{localStorage.setItem("rb-me",JSON.stringify({r:real,c:char}))}catch(e){}
+  const names=items.filter(i=>selected.has(i.id)).map(i=>`${list.find(l=>l.item_id===i.id).qty} × ${i.name}`);
+  selected.clear();$("#signDlg").close();await loadAll();
+  $("#thanksTitle").textContent=`Thank you, ${char}!`;
+  $("#thanksText").textContent=`You're signed up to bring: ${names.join(", ")}.`;
+  $("#thanksDlg").showModal();
+});
+
+// ---------- organizer tools ----------
+let editing=null;
+function openEdit(id){const s=signups.find(x=>x.id===id);if(!s)return;editing=s;const it=items.find(i=>i.id===s.item_id);
+  $("#editWhat").textContent=`${it?.name||"Item"}${it?.packaging?" · "+it.packaging:""}`;
+  $("#eChar").value=s.character_name;$("#eReal").value=realNames.get(id)||"";$("#eQty").value=s.qty;$("#editMsg").textContent="";$("#editDlg").showModal()}
+const fail=(el,e)=>{console.error(e);el.className="msg bad";el.textContent=/not_editor/.test(e?.message||"")?"Only organizers can change this.":"Couldn't save — try again."};
+$("#editForm").addEventListener("submit",async e=>{e.preventDefault();
+  const {error}=await sb.rpc("bar_edit_signup",{p_id:editing.id,p_character:$("#eChar").value.trim(),p_real_name:$("#eReal").value.trim(),p_qty:Math.floor(+$("#eQty").value)});
+  if(error)return fail($("#editMsg"),error);$("#editDlg").close();loadAll()});
+$("#eDel").addEventListener("click",async()=>{if(!confirm(`Remove ${editing.character_name}'s sign-up?`))return;
+  const {error}=await sb.rpc("bar_delete_signup",{p_id:editing.id});if(error)return fail($("#editMsg"),error);$("#editDlg").close();loadAll()});
+let itemEditing=null;
+function openItem(id){itemEditing=id?items.find(i=>i.id===id):null;
+  $("#itemTitle").textContent=itemEditing?"Edit item":"Add item";$("#iDel").hidden=!itemEditing;
+  $("#iName").value=itemEditing?.name||"";$("#iNeed").value=itemEditing?.needed??1;$("#iPack").value=itemEditing?.packaging||"";
+  $("#itemMsg").textContent="";$("#itemDlg").showModal();$("#iName").focus()}
+$("#addItemBtn").addEventListener("click",()=>openItem(null));
+$("#itemForm").addEventListener("submit",async e=>{e.preventDefault();
+  const {error}=await sb.rpc("bar_save_item",{p_id:itemEditing?.id??null,p_name:$("#iName").value.trim(),p_needed:Math.max(0,Math.floor(+$("#iNeed").value||0)),p_packaging:$("#iPack").value.trim()});
+  if(error)return fail($("#itemMsg"),error);$("#itemDlg").close();loadAll()});
+$("#iDel").addEventListener("click",async()=>{const n=taken(itemEditing.id);
+  if(!confirm(`Delete “${itemEditing.name}”${n?` and its ${signups.filter(s=>s.item_id===itemEditing.id).length} sign-up(s)`:""}?`))return;
+  const {error}=await sb.rpc("bar_delete_item",{p_id:itemEditing.id});if(error)return fail($("#itemMsg"),error);$("#itemDlg").close();loadAll()});
+$("#clearBtn").addEventListener("click",async()=>{
+  if(!signups.length)return alert("There are no sign-ups to clear.");
+  if(!confirm(`Clear all ${signups.length} sign-ups and start a fresh sheet? The item list stays. This can't be undone.`))return;
+  const {error}=await sb.rpc("bar_clear_signups");if(error){status("Couldn't clear — try again.",true);return}loadAll()});
+
+// ---------- organizer sign in ----------
+const amsg=(t,bad)=>{$("#aMsg").textContent=t||"";$("#aMsg").className="msg"+(bad?" bad":"")};
+$("#acctBtn").addEventListener("click",()=>{if(!sb)return;amsg("");$("#authOut").hidden=!!me;$("#authIn").hidden=!me;
+  $("#authTitle").textContent=me?"Your account":"Organizer sign in";
+  if(me)$("#aWho").textContent=`Signed in as ${me.email}. `+(me.editor?"You can manage the sheet.":"This email isn't on the editors list.");
+  $("#authDlg").showModal()});
+$("#authForm").addEventListener("submit",async e=>{e.preventDefault();if(me)return;
+  const email=$("#aEmail").value.trim(),password=$("#aPass").value;if(!email||!password){amsg("Enter your email and password.",true);return}
+  amsg("Signing in…");const {error}=await sb.auth.signInWithPassword({email,password});
+  if(error)amsg(/invalid/i.test(error.message)?"Email or password is wrong.":error.message,true);else{$("#aPass").value="";$("#authDlg").close()}});
+$("#aOut").addEventListener("click",async()=>{await sb.auth.signOut();$("#authDlg").close()});
+async function checkMe(session){
+  const u=session?.user;
+  if(!u){me=null;realNames=new Map()}
+  else{me={email:u.email,editor:false,name:""};try{const {data}=await sb.rpc("whoami");me.editor=!!data?.editor;me.name=data?.name||""}catch(e){}}
+  $("#acctBtn").textContent=me?"Account":"Organizer sign in";
+  await loadAll();showState();
+}
+
+// ---------- start ----------
+render();
+if(!window.supabase){status("Couldn't load — check your connection and refresh",true)}
+else{
+  sb=window.supabase.createClient(SUPABASE_URL,SUPABASE_ANON_KEY,{auth:{persistSession:true}});
+  sb.auth.onAuthStateChange((ev,session)=>{setTimeout(()=>checkMe(session),0)});
+  sb.channel("bar-live")
+    .on("postgres_changes",{event:"*",schema:"public",table:"bar_items"},soon)
+    .on("postgres_changes",{event:"*",schema:"public",table:"bar_signups"},soon)
+    .subscribe();
+  loadAll();
+  setInterval(()=>{if(document.visibilityState==="visible")loadAll()},60000);
+  document.addEventListener("visibilitychange",()=>{if(document.visibilityState==="visible")loadAll()});
+}
+}
+</script>
 </body>
 </html>

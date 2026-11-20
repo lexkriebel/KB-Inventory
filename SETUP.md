@@ -139,3 +139,23 @@ Once you're happy, `inventory.json` is no longer used. You can delete it from th
 - **Import** (in the Export window) replaces everyone's counts with the pasted list. Items not listed are set to 0. It asks before doing anything.
 - **Someone forgot their password:** go to **Authentication** → **Users**, find them, and delete the user. Then create them again (step 4) with a new password. Their history in the change log stays.
 - **Sign-in link says "expired" or "invalid":** links only work once and for a limited time. Request a new one, or use a password.
+
+---
+
+## Royaltea Bar sign-up sheet
+
+The bar page (`royaltea-bar.html`) uses the same Supabase project and the same **editors** list.
+
+1. In Supabase, open **SQL Editor** → **New query**.
+2. Paste the whole of **`bar-setup.sql`** from this repository. Make sure nothing is highlighted, then click **Run**.
+3. The result at the bottom should say **bar_items 30**.
+
+How it works:
+
+- **Anyone** can tap items, press **Confirm selection**, and enter their real name, character name and how many they're bringing. No account needed.
+- The sheet shows **character names only**. Real names are visible only to editors, who sign in with **Organizer sign in** on the bar page.
+- After someone confirms, only editors can change things. Signed-in editors can:
+  - click a name to change or remove that sign-up
+  - use **Edit item** or **Add item** to change the list
+  - use **Clear all sign-ups** to start a fresh sheet for the next event
+- **Colors:** to preview another color scheme, add `?palette=tartan`, `?palette=loch` or `?palette=shortbread` to the bar page address. To change it for everyone, change `data-palette="heather"` near the top of `royaltea-bar.html`.
