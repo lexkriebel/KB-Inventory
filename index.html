@@ -6,6 +6,7 @@
 <title>Quartermaster Inventory</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link href="https://fonts.googleapis.com/css2?family=Cinzel:wght@600;800&family=Alegreya+Sans:wght@400;500;700&display=swap" rel="stylesheet">
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.118.0/dist/umd/supabase.js"></script>
 <style>
 /* VOICE: a camp quartermaster's working ledger, practical with a little ceremony
    IDEA: the stock book kept in a supply wagon, one ruled line per good
@@ -58,9 +59,20 @@ textarea{font:14px/1.4 ui-monospace,monospace;width:100%;min-height:220px;border
 .flash{animation:fl .5s}@keyframes fl{from{background:color-mix(in srgb,var(--acc) 25%,transparent)}}
 @media(prefers-reduced-motion:reduce){.flash{animation:none}}
 @media(max-width:600px){.status{margin-left:0;width:100%}.qty button{width:40px}.qty input{width:58px}}
+/* view-only mode (not signed in, or not an approved editor) */
+.ro .qty button,.ro .edonly{display:none!important}
+.ro .qty input{border-color:transparent;background:transparent}
+[hidden]{display:none!important}
+.status.bad{color:var(--warn)}
+.msg{margin:0;font-size:14px;color:var(--mute)}.msg.bad{color:var(--warn)}
+.or{display:flex;align-items:center;gap:10px;color:var(--mute);font-size:13px}.or:before,.or:after{content:"";flex:1;border-top:1px solid var(--rule)}
+.log{list-style:none;margin:0;padding:0;max-height:min(60vh,520px);overflow:auto;border-top:1px solid var(--rule)}
+.log li{padding:8px 2px;border-bottom:1px solid var(--rule);display:grid;gap:2px}
+.log .what{font-weight:500}.log .what b{font-variant-numeric:tabular-nums}
+.log .meta{font-size:13px;color:var(--mute)}
 </style>
 </head>
-<body>
+<body class="ro">
 <header class="band"><div class="wrap">
   <h1>Quartermaster's Inventory</h1>
   <p class="sub" id="sum">Loading the ledger…</p>
@@ -75,11 +87,12 @@ textarea{font:14px/1.4 ui-monospace,monospace;width:100%;min-height:220px;border
     <option value="qty">Most stocked</option>
   </select>
   <label class="chk"><input type="checkbox" id="stock"> In stock only</label>
-  <button class="btn" id="undo" disabled>Undo</button>
-  <button class="btn" id="addBtn">Add item</button>
+  <button class="btn edonly" id="undo" disabled>Undo</button>
+  <button class="btn edonly" id="addBtn">Add item</button>
   <button class="btn" id="expBtn">Export</button>
-  <button class="btn" id="ghBtn">Sync settings</button>
-  <span class="status" id="status"></span>
+  <button class="btn" id="logBtn">Recent changes</button>
+  <button class="btn" id="acctBtn">Sign in</button>
+  <span class="status" id="status" role="status"></span>
 </div></div>
 
 <main class="band" style="padding-top:8px"><div class="wrap" id="list"></div></main>
@@ -94,31 +107,55 @@ textarea{font:14px/1.4 ui-monospace,monospace;width:100%;min-height:220px;border
 
 <dialog id="expDlg"><form>
   <h3>Export / import</h3>
-  <p class="sub" style="margin:0">One item per line: <code>Name, Category, Qty</code>. Edit and press Import to replace counts.</p>
+  <p class="sub" style="margin:0">One item per line: <code>Name, Category, Qty</code>.<span class="edonly"> Edit and press Import to replace counts for everyone.</span></p>
   <textarea id="expText" aria-label="Inventory as text"></textarea>
+  <p class="msg" id="expMsg"></p>
   <div class="drow">
+    <button type="button" class="btn edonly" id="jsonBtn" title="One-time move of the counts saved by the old GitHub version">Load old inventory.json</button>
     <button type="button" class="btn" data-close>Close</button>
     <button type="button" class="btn" id="copyBtn">Copy</button>
-    <button type="button" class="btn pri" id="impBtn">Import</button>
+    <button type="button" class="btn pri edonly" id="impBtn">Import</button>
   </div>
 </form></dialog>
 
-<dialog id="ghDlg"><form id="ghForm">
-  <h3>GitHub sync</h3>
-  <p class="sub" style="margin:0">Counts are saved to <code>inventory.json</code> in your repository. The token stays in this browser only.</p>
-  <label>Your GitHub username<input id="ghOwner" required autocomplete="off" autocapitalize="off" style="width:100%"></label>
-  <label>Repository name<input id="ghRepo" required autocomplete="off" autocapitalize="off" style="width:100%"></label>
-  <label>Access token<input id="ghToken" type="password" required autocomplete="off" style="width:100%" placeholder="github_pat_…"></label>
-  <p class="sub" id="ghMsg" style="margin:0"></p>
-  <div class="drow">
-    <button type="button" class="btn" id="ghOff">Disconnect</button>
-    <button type="button" class="btn" data-close>Cancel</button>
-    <button class="btn pri">Connect</button>
+<dialog id="logDlg"><form>
+  <h3>Recent changes</h3>
+  <ul class="log" id="logList"><li class="meta">Loading…</li></ul>
+  <div class="drow"><button type="button" class="btn" data-close>Close</button></div>
+</form></dialog>
+
+<dialog id="authDlg"><form id="authForm">
+  <h3 id="authTitle">Sign in to edit</h3>
+  <div id="authOut" style="display:grid;gap:10px">
+    <p class="sub" style="margin:0">Anyone can view the ledger. Only approved editors can change it.</p>
+    <label>Email<input id="aEmail" type="email" required autocomplete="email" autocapitalize="off" style="width:100%"></label>
+    <label>Password<input id="aPass" type="password" autocomplete="current-password" style="width:100%"></label>
+    <div class="drow"><button type="button" class="btn" data-close>Cancel</button><button class="btn pri" id="aPwBtn">Sign in</button></div>
+    <div class="or">or</div>
+    <div class="drow"><button type="button" class="btn" id="aLinkBtn">Email me a sign-in link</button></div>
   </div>
+  <div id="authIn" style="display:grid;gap:10px" hidden>
+    <p class="sub" style="margin:0" id="aWho"></p>
+    <label>Set a new password (optional)<input id="aNewPass" type="password" minlength="6" autocomplete="new-password" style="width:100%"></label>
+    <div class="drow">
+      <button type="button" class="btn" id="aSetPw">Save password</button>
+      <button type="button" class="btn" id="aOut">Sign out</button>
+      <button type="button" class="btn pri" data-close>Done</button>
+    </div>
+  </div>
+  <p class="msg" id="aMsg" aria-live="polite"></p>
 </form></dialog>
 
 <script>
 {
+// ===== Supabase connection =====================================================
+// Paste your project's values here (Supabase → Project Settings → API / API Keys).
+// Use the "Project URL" and the public "anon" / "publishable" key.
+// NEVER put the "service_role" or "secret" key in this file.
+const SUPABASE_URL = "";
+const SUPABASE_ANON_KEY = "";
+// ===============================================================================
+
 const CATS=["Weapon/Tool/Armor","Animal/Fleshy/Bone","Sealife","Bug","Plant","Metal/Stone","Gems","Money","Potions/Poison/Oils","Scroll","Item of Quality","Misc"];
 const SEED={
 "Weapon/Tool/Armor":["Archery Weapon","Armor - Heavy","Armor - Light","Armor - Moderate","Fishing Rod","One Handed Weapon","One Handed Weapon - Small","Pickaxe","Shield","Throwing Weapon","Two Handed Weapon"],
@@ -136,58 +173,117 @@ const SEED={
 };
 const base=[];for(const c of CATS)for(const n of SEED[c])base.push({n,c});
 const baseNames=new Set(base.map(i=>i.n));
-let state={counts:{},custom:[]};
-const hist=[];let saveT=null;
+const baseCat=new Map(base.map(i=>[i.n,i.c]));
+
+// rows: what the server says (name -> {c,q,v}); over: optimistic values while a save is in flight
+const rows=new Map(),over=new Map(),pending=new Map();
+const undoStack=[];
+let sb=null,me=null,live=false,loaded=false,lastErr="";
 const $=s=>document.querySelector(s);
 const esc=s=>String(s).replace(/[&<>"']/g,m=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[m]));
-const items=()=>base.concat(state.custom.map(i=>CATS.includes(i.c)?i:{n:i.n,c:"Misc"}));
-const qty=n=>state.counts[n]||0;
-const status=t=>{$("#status").textContent=t};
+const custom=()=>[...rows].filter(([n])=>!baseNames.has(n)).map(([n,r])=>({n,c:CATS.includes(r.c)?r.c:"Misc"}));
+const items=()=>base.concat(custom());
+const qty=n=>over.has(n)?over.get(n):(rows.get(n)?.q||0);
+const catOf=n=>baseCat.get(n)||rows.get(n)?.c||"Misc";
+const canEdit=()=>!!(sb&&me&&me.editor);
 
-function loadLocal(){try{const s=JSON.parse(localStorage.getItem("qm-inv")||"null");if(s&&s.counts)state={counts:s.counts,custom:s.custom||[]}}catch(e){}}
-let gh=null,sha=null,busy=false,dirty=false,lastRemote="";
-try{gh=JSON.parse(localStorage.getItem("qm-gh")||"null")}catch(e){}
-const enc=str=>btoa(String.fromCharCode(...new TextEncoder().encode(str)));
-const dec=b=>new TextDecoder().decode(Uint8Array.from(atob(b.replace(/\s/g,"")),c=>c.charCodeAt(0)));
-const api=(opt={})=>fetch(`https://api.github.com/repos/${encodeURIComponent(gh.owner)}/${encodeURIComponent(gh.repo)}/contents/inventory.json`+(opt.method?"":`?t=${Date.now()}`),
-  {...opt,cache:"no-store",headers:{Authorization:`Bearer ${gh.token}`,Accept:"application/vnd.github+json","X-GitHub-Api-Version":"2022-11-28",...(opt.headers||{})}});
-async function pull(force){
-  if(!gh||busy||(dirty&&!force))return;
-  try{
-    const r=await api();
-    if(r.status===404){sha=null;status("Connected · no saved file yet");if(Object.keys(state.counts).length||state.custom.length){dirty=true;push()}return}
-    if(!r.ok)throw r;
-    const j=await r.json();sha=j.sha;const txt=dec(j.content);
-    if(txt!==lastRemote){lastRemote=txt;const d=JSON.parse(txt);state={counts:d.counts||{},custom:d.custom||[]};
-      try{localStorage.setItem("qm-inv",JSON.stringify(state))}catch(e){}render()}
-    status("Synced with GitHub");
-  }catch(e){status(e&&e.status===401?"GitHub token rejected — check Sync settings":"Offline · saved in this browser")}
-}
-async function push(){
-  if(!gh)return;if(busy){dirty=true;return}
-  busy=true;dirty=false;status("Saving to GitHub…");
-  const txt=JSON.stringify({counts:state.counts,custom:state.custom},null,1);
-  try{
-    let r=await api({method:"PUT",body:JSON.stringify({message:"Update inventory",content:enc(txt),...(sha?{sha}:{})})});
-    if(r.status===409||r.status===422){const g=await api();if(g.ok){sha=(await g.json()).sha;
-      r=await api({method:"PUT",body:JSON.stringify({message:"Update inventory",content:enc(txt),sha})})}}
-    if(!r.ok)throw r;
-    sha=(await r.json()).content.sha;lastRemote=txt;status("Synced with GitHub");
-  }catch(e){dirty=true;status(e&&e.status===401?"GitHub token rejected — check Sync settings":e&&e.status===403?"Token can't write — check its permissions":"Couldn't reach GitHub · will retry")}
-  busy=false;if(dirty)setTimeout(push,3000);
-}
-function save(){
-  try{localStorage.setItem("qm-inv",JSON.stringify(state))}catch(e){}
-  if(!gh){status("Saved in this browser only");return}
-  dirty=true;clearTimeout(saveT);status("Saving…");saveT=setTimeout(push,1200);
-}
-function snapshot(){hist.push(JSON.stringify(state));if(hist.length>50)hist.shift();$("#undo").disabled=false}
-function setQty(n,v,flash){
-  v=Math.max(0,Math.floor(Number(v)||0));if(v===qty(n))return render();
-  snapshot();if(v)state.counts[n]=v;else delete state.counts[n];save();render(flash?n:null);
+try{localStorage.removeItem("qm-gh")}catch(e){} // forget any GitHub token saved by the old version
+
+// ---------- status line ----------
+function status(t,bad){const s=$("#status");s.textContent=t;s.classList.toggle("bad",!!bad)}
+function showState(){
+  const busy=[...pending.values()].some(v=>v>0);
+  if(!sb)return;
+  if(lastErr)return status(lastErr,true);
+  if(busy)return status("Saving…");
+  const conn=live?"Live":(loaded?"Reconnecting…":"Connecting…");
+  if(!me)return status(`${conn} · view only — sign in to edit`);
+  if(!me.editor)return status(`${conn} · signed in as ${me.email} · not an approved editor yet`,true);
+  status(`${conn} · editing as ${me.name||me.email}`);
 }
 
+// ---------- server data ----------
+function applyRow(r){
+  if(!r||!r.name)return;
+  const cur=rows.get(r.name);
+  if(cur&&r.version!=null&&cur.v>r.version)return; // older news than we already have
+  rows.set(r.name,{c:r.category||cur?.c||catOf(r.name),q:r.qty,v:r.version??cur?.v??0});
+}
+function cache(){try{localStorage.setItem("qm-cache",JSON.stringify([...rows]))}catch(e){}}
+function loadCache(){try{const a=JSON.parse(localStorage.getItem("qm-cache")||"null");if(Array.isArray(a))for(const [n,r] of a)rows.set(n,r)}catch(e){}}
+async function loadAll(){
+  if(!sb)return;
+  const {data,error}=await sb.from("items").select("name,category,qty,version");
+  if(error){status("Couldn't load the inventory · showing last known counts",true);return}
+  const seen=new Set(data.map(r=>r.name));
+  for(const r of data)applyRow(r);
+  for(const n of [...rows.keys()])if(!seen.has(n)&&!pending.get(n))rows.delete(n);
+  loaded=true;cache();render();showState();
+}
+let renderT=null;
+function soon(){clearTimeout(renderT);renderT=setTimeout(()=>{render();cache();if($("#logDlg").open)loadLog()},150)}
+
+// ---------- changes ----------
+function friendly(e){
+  const m=(e&&(e.message||e.details))||"";
+  if(/not_editor/.test(m)||e?.code==="42501")return "You're not on the editors list, so the change wasn't saved.";
+  if(/exists/.test(m))return "That item is already in the list.";
+  if(/JWT|token/i.test(m))return "Your sign-in expired — please sign in again.";
+  return "Couldn't save — check your connection and try again.";
+}
+function fail(e){console.error(e);lastErr=friendly(e);showState();setTimeout(()=>{lastErr="";showState()},6000);loadAll()}
+async function rpc(fn,args){const {data,error}=await sb.rpc(fn,args);if(error)throw error;return data}
+const pend=(n,d)=>{pending.set(n,(pending.get(n)||0)+d);if(!pending.get(n))pending.delete(n)};
+function needEditor(){if(canEdit())return true;
+  if(!sb)status("Not connected to Supabase yet — see SETUP.md",true);else if(!me)openAuth();else showState();
+  render();return false}
+function pushUndo(u){undoStack.push(u);if(undoStack.length>50)undoStack.shift();$("#undo").disabled=false}
+
+// kind "delta": add/subtract (− / + buttons). kind "set": an exact number typed in the box.
+async function change(n,kind,val,noUndo){
+  if(!needEditor())return;
+  const cur=qty(n),target=Math.max(0,kind==="delta"?cur+val:Math.floor(Number(val)||0));
+  if(target===cur)return render();
+  over.set(n,target);pend(n,1);render(n);showState();
+  try{
+    const r=kind==="delta"?await rpc("adjust_qty",{p_name:n,p_delta:val,p_category:catOf(n)})
+                          :await rpc("set_qty",{p_name:n,p_qty:target,p_category:catOf(n)});
+    applyRow({...r,category:catOf(n)});
+    if(!noUndo&&r.old!==r.qty)pushUndo({t:"delta",n,d:r.old-r.qty});
+  }catch(e){fail(e)}
+  finally{pend(n,-1);if(!pending.get(n))over.delete(n);render();cache();showState()}
+}
+async function addItem(n,c,q){
+  try{const r=await rpc("add_item",{p_name:n,p_category:c,p_qty:q});applyRow(r);pushUndo({t:"add",n});render(n);cache()}
+  catch(e){fail(e)}
+}
+async function removeItem(n,noUndo){
+  pend(n,1);
+  try{const r=await rpc("remove_item",{p_name:n});rows.delete(n);
+    if(!noUndo&&r.old!=null)pushUndo({t:"del",n,c:r.category||"Misc",q:r.old})}
+  catch(e){fail(e)}
+  finally{pend(n,-1);render();cache();showState()}
+}
+const snapshotList=()=>items().map(i=>({name:i.n,category:i.c,qty:qty(i.n)}));
+async function importList(list,noUndo){
+  const prev=snapshotList();status("Importing…");
+  try{const k=await rpc("import_inventory",{p_items:list});if(!noUndo)pushUndo({t:"import",prev});
+    await loadAll();status(`Import done · ${k} change${k===1?"":"s"}`);setTimeout(showState,4000);return true}
+  catch(e){fail(e);return false}
+}
+// Build a full list (every standard item + custom ones) from a counts map
+function fullList(counts,customs){
+  const list=base.map(i=>({name:i.n,category:i.c,qty:Math.max(0,Math.floor(+counts[i.n]||0))}));
+  for(const x of customs)if(!baseNames.has(x.n)&&!list.some(l=>l.name===x.n))
+    list.push({name:x.n,category:CATS.includes(x.c)?x.c:"Misc",qty:Math.max(0,Math.floor(+counts[x.n]||0))});
+  return list;
+}
+
+// ---------- drawing the page ----------
 function render(flashName){
+  // keep the cursor in a number box if someone else's change arrives while typing
+  const ae=document.activeElement,keep=ae&&ae.matches&&ae.matches(".qty input")?{n:ae.closest(".row").dataset.n,v:ae.value}:null;
+  const ro=!canEdit();document.body.classList.toggle("ro",ro);
   const q=$("#q").value.trim().toLowerCase(),only=$("#stock").checked,sort=$("#sort").value;
   const all=items(),total=all.reduce((a,i)=>a+qty(i.n),0),held=all.filter(i=>qty(i.n)>0).length;
   $("#sum").textContent=`${held} of ${all.length} item types in stock · ${total.toLocaleString()} pieces total`;
@@ -199,7 +295,7 @@ function render(flashName){
     <div class="nm">${esc(i.n)}${sort!=="cat"?`<em>${esc(i.c)}</em>`:""}${baseNames.has(i.n)?"":`<em>custom</em>`}</div>
     <div class="qty">${baseNames.has(i.n)?"":`<button class="del" data-act="del" aria-label="Remove ${esc(i.n)}">✕</button>`}
       <button data-act="-" aria-label="Remove one ${esc(i.n)}">−</button>
-      <input type="number" min="0" inputmode="numeric" value="${qty(i.n)}" aria-label="${esc(i.n)} quantity">
+      <input type="number" min="0" inputmode="numeric" value="${qty(i.n)}" aria-label="${esc(i.n)} quantity"${ro?" readonly":""}>
       <button data-act="+" aria-label="Add one ${esc(i.n)}">+</button></div></div>`;
   let html="";
   if(!list.length)html=`<p class="empty">No items match${only?" — try turning off “In stock only”":""}.</p>`;
@@ -207,59 +303,125 @@ function render(flashName){
     const s=g.reduce((a,i)=>a+qty(i.n),0);html+=`<section class="grp"><h2>${esc(c)}<small>${s} pcs</small></h2>${g.map(row).join("")}</section>`}}
   else{list.sort(sort==="az"?(a,b)=>a.n.localeCompare(b.n):(a,b)=>qty(b.n)-qty(a.n)||a.n.localeCompare(b.n));html=`<section class="grp">${list.map(row).join("")}</section>`}
   $("#list").innerHTML=html;
+  if(keep){const el=[...document.querySelectorAll("#list .row")].find(r=>r.dataset.n===keep.n)?.querySelector("input");
+    if(el){el.value=keep.v;el.focus()}}
+  $("#undo").disabled=!undoStack.length;
 }
 
+// ---------- list interactions ----------
 $("#list").addEventListener("click",e=>{
   const b=e.target.closest("button[data-act]");if(!b)return;const n=b.closest(".row").dataset.n;
-  if(b.dataset.act==="+")setQty(n,qty(n)+1,true);
-  else if(b.dataset.act==="-")setQty(n,qty(n)-1,true);
-  else if(b.dataset.act==="del"){snapshot();state.custom=state.custom.filter(i=>i.n!==n);delete state.counts[n];save();render()}
+  if(b.dataset.act==="+")change(n,"delta",1);
+  else if(b.dataset.act==="-")change(n,"delta",-1);
+  else if(b.dataset.act==="del"){if(needEditor())removeItem(n)}
 });
-$("#list").addEventListener("change",e=>{if(e.target.matches(".qty input"))setQty(e.target.closest(".row").dataset.n,e.target.value,true)});
+$("#list").addEventListener("change",e=>{if(e.target.matches(".qty input")&&!e.target.readOnly)change(e.target.closest(".row").dataset.n,"set",e.target.value)});
 $("#list").addEventListener("keydown",e=>{if(e.key==="Enter"&&e.target.matches(".qty input"))e.target.blur()});
 $("#tally").addEventListener("click",e=>{const b=e.target.closest("button");if(!b)return;const t=$("#tally");t.dataset.cat=t.dataset.cat===b.dataset.cat?"":b.dataset.cat;render()});
 $("#q").addEventListener("input",()=>render());$("#sort").addEventListener("change",()=>render());$("#stock").addEventListener("change",()=>render());
-$("#undo").addEventListener("click",()=>{const p=hist.pop();if(p){state=JSON.parse(p);save();render()}$("#undo").disabled=!hist.length});
+$("#undo").addEventListener("click",async()=>{
+  if(!needEditor())return;const u=undoStack.pop();$("#undo").disabled=!undoStack.length;if(!u)return;
+  if(u.t==="delta")await change(u.n,"delta",u.d,true);
+  else if(u.t==="add")await removeItem(u.n,true);
+  else if(u.t==="del"){try{applyRow(await rpc("add_item",{p_name:u.n,p_category:u.c,p_qty:u.q}));render(u.n);cache()}catch(e){fail(e)}}
+  else if(u.t==="import")await importList(u.prev,true);
+});
 
 $("#newCat").innerHTML=CATS.map(c=>`<option>${esc(c)}</option>`).join("");
-$("#addBtn").addEventListener("click",()=>{$("#addForm").reset();$("#addDlg").showModal();$("#newName").focus()});
+$("#addBtn").addEventListener("click",()=>{if(!needEditor())return;$("#addForm").reset();$("#addDlg").showModal();$("#newName").focus()});
 $("#addForm").addEventListener("submit",e=>{e.preventDefault();const n=$("#newName").value.trim();if(!n)return;
   if(items().some(i=>i.n.toLowerCase()===n.toLowerCase())){$("#newName").setCustomValidity("Already in the list");$("#newName").reportValidity();return}
-  snapshot();state.custom.push({n,c:$("#newCat").value});const v=Math.max(0,Math.floor(+$("#newQty").value||0));if(v)state.counts[n]=v;
-  save();$("#addDlg").close();render(n)});
+  $("#addDlg").close();addItem(n,$("#newCat").value,Math.max(0,Math.floor(+$("#newQty").value||0)))});
 $("#newName").addEventListener("input",e=>e.target.setCustomValidity(""));
 document.querySelectorAll("[data-close]").forEach(b=>b.addEventListener("click",()=>b.closest("dialog").close()));
 
-$("#expBtn").addEventListener("click",()=>{$("#expText").value=items().map(i=>`${i.n}, ${i.c}, ${qty(i.n)}`).join("\n");$("#expDlg").showModal()});
+// ---------- export / import ----------
+$("#expBtn").addEventListener("click",()=>{$("#expText").value=items().map(i=>`${i.n}, ${i.c}, ${qty(i.n)}`).join("\n");$("#expMsg").textContent="";$("#expDlg").showModal()});
 $("#copyBtn").addEventListener("click",async()=>{try{await navigator.clipboard.writeText($("#expText").value);$("#copyBtn").textContent="Copied"}catch(e){$("#expText").select();$("#copyBtn").textContent="Press Ctrl/⌘+C"}setTimeout(()=>$("#copyBtn").textContent="Copy",1800)});
-$("#impBtn").addEventListener("click",()=>{
-  snapshot();const counts={},custom=[];
+$("#impBtn").addEventListener("click",async()=>{
+  if(!needEditor())return;
+  const counts={},customs=[];
   for(const line of $("#expText").value.split("\n")){const parts=line.split(",").map(s=>s.trim());if(parts.length<2||!parts[0])continue;
     const v=Math.max(0,Math.floor(+parts[parts.length-1]||0)),n=parts.slice(0,parts.length>=3?parts.length-2:1).join(", ");
     const c=parts.length>=3&&CATS.includes(parts[parts.length-2])?parts[parts.length-2]:"Misc";
-    if(!baseNames.has(n)&&!custom.some(i=>i.n===n))custom.push({n,c});if(v)counts[n]=v}
-  state={counts,custom};save();$("#expDlg").close();render()});
+    if(!baseNames.has(n)&&!customs.some(i=>i.n===n))customs.push({n,c});if(v)counts[n]=v}
+  if(!confirm("Replace the counts for everyone with this list? Items not listed will be set to 0. You can Undo afterwards."))return;
+  if(await importList(fullList(counts,customs)))$("#expDlg").close()});
+// One-time move from the old GitHub version (reads inventory.json next to this page)
+$("#jsonBtn").addEventListener("click",async()=>{
+  if(!needEditor())return;$("#expMsg").textContent="Reading inventory.json…";
+  let d;try{const r=await fetch("inventory.json?t="+Date.now(),{cache:"no-store"});if(!r.ok)throw 0;d=await r.json()}
+  catch(e){$("#expMsg").textContent="Couldn't find inventory.json next to this page.";return}
+  const counts=d.counts||{},customs=d.custom||[],k=Object.values(counts).filter(v=>v>0).length;
+  if(!confirm(`inventory.json has ${k} item${k===1?"":"s"} in stock${customs.length?` and ${customs.length} custom item(s)`:""}. Replace the current counts for everyone with these?`)){$("#expMsg").textContent="";return}
+  if(await importList(fullList(counts,customs))){$("#expMsg").textContent="";$("#expDlg").close()}});
 
-$("#ghBtn").addEventListener("click",()=>{
-  const m=location.hostname.match(/^([^.]+)\.github\.io$/);
-  $("#ghOwner").value=gh?.owner||(m?m[1]:"");$("#ghRepo").value=gh?.repo||(m?(location.pathname.split("/")[1]||""):"");
-  $("#ghToken").value=gh?.token||"";$("#ghMsg").textContent="";$("#ghDlg").showModal()});
-$("#ghForm").addEventListener("submit",async e=>{e.preventDefault();
-  gh={owner:$("#ghOwner").value.trim(),repo:$("#ghRepo").value.trim(),token:$("#ghToken").value.trim()};
-  $("#ghMsg").textContent="Checking…";
-  try{const r=await api();if(r.status===401)throw "That token was rejected.";if(r.status===404){
-      const t=await fetch(`https://api.github.com/repos/${encodeURIComponent(gh.owner)}/${encodeURIComponent(gh.repo)}`,{headers:{Authorization:`Bearer ${gh.token}`}});
-      if(!t.ok)throw "Repository not found, or the token can't access it.";}
-    else if(!r.ok)throw "GitHub said: "+r.status;
-  }catch(err){$("#ghMsg").textContent=typeof err==="string"?err:"Couldn't reach GitHub.";gh=null;return}
-  try{localStorage.setItem("qm-gh",JSON.stringify(gh))}catch(e){}
-  sha=null;lastRemote="";$("#ghDlg").close();pull(true)});
-$("#ghOff").addEventListener("click",()=>{gh=null;try{localStorage.removeItem("qm-gh")}catch(e){}$("#ghDlg").close();status("Saved in this browser only")});
+// ---------- recent changes ----------
+const fmtWhen=t=>{const d=new Date(t),s=(Date.now()-d)/1000;
+  if(s<60)return "just now";if(s<3600)return `${Math.floor(s/60)} min ago`;if(s<86400)return `${Math.floor(s/3600)} h ago`;
+  return d.toLocaleString(undefined,{month:"short",day:"numeric",hour:"numeric",minute:"2-digit"})};
+async function loadLog(){
+  if(!sb){$("#logList").innerHTML=`<li class="meta">Not connected to Supabase yet.</li>`;return}
+  const {data,error}=await sb.from("change_log").select("id,item_name,old_qty,new_qty,action,who,created_at").order("id",{ascending:false}).limit(60);
+  if(error){$("#logList").innerHTML=`<li class="meta">Couldn't load the change log.</li>`;return}
+  if(!data.length){$("#logList").innerHTML=`<li class="meta">No changes yet.</li>`;return}
+  $("#logList").innerHTML=data.map(r=>{
+    const what=r.old_qty==null?`added · <b>${r.new_qty}</b>`:r.new_qty==null?`removed (had <b>${r.old_qty}</b>)`:`<b>${r.old_qty}</b> → <b>${r.new_qty}</b>`;
+    return `<li><span class="what">${esc(r.item_name)}: ${what}</span><span class="meta">${esc(r.who)} · ${fmtWhen(r.created_at)}${r.action==="import"?" · import":""}</span></li>`}).join("");
+}
+$("#logBtn").addEventListener("click",()=>{$("#logDlg").showModal();loadLog()});
 
-loadLocal();render();
-if(gh){status("Connecting…");pull(true)}else status("Saved in this browser only · open Sync settings to connect GitHub");
-setInterval(()=>{if(document.visibilityState==="visible")pull()},30000);
-document.addEventListener("visibilitychange",()=>{if(document.visibilityState==="visible")pull()});
+// ---------- sign in ----------
+const amsg=(t,bad)=>{$("#aMsg").textContent=t||"";$("#aMsg").classList.toggle("bad",!!bad)};
+function openAuth(){
+  amsg("");const signed=!!me;$("#authOut").hidden=signed;$("#authIn").hidden=!signed;
+  $("#authTitle").textContent=signed?"Your account":"Sign in to edit";
+  $("#aEmail").required=!signed;
+  if(signed)$("#aWho").textContent=`Signed in as ${me.email}. `+(me.editor?"You can edit the inventory.":"You're not on the editors list yet — ask the quartermaster to add this email.");
+  $("#authDlg").showModal();
+}
+$("#acctBtn").addEventListener("click",()=>{if(!sb){status("Not connected to Supabase yet — see SETUP.md",true);return}openAuth()});
+$("#authForm").addEventListener("submit",async e=>{e.preventDefault();if(me)return;
+  const email=$("#aEmail").value.trim(),password=$("#aPass").value;
+  if(!password){amsg("Type your password, or use “Email me a sign-in link”.",true);return}
+  amsg("Signing in…");const {error}=await sb.auth.signInWithPassword({email,password});
+  if(error)amsg(/invalid/i.test(error.message)?"Email or password is wrong.":error.message,true);else{amsg("");$("#aPass").value="";$("#authDlg").close()}});
+$("#aLinkBtn").addEventListener("click",async()=>{
+  const email=$("#aEmail").value.trim();if(!$("#aEmail").checkValidity()||!email){amsg("Type your email first.",true);return}
+  amsg("Sending…");const {error}=await sb.auth.signInWithOtp({email,options:{emailRedirectTo:location.origin+location.pathname}});
+  amsg(error?(/rate|limit/i.test(error.message)?"Too many emails sent recently — wait a while, or sign in with a password.":error.message):"Check your email and open the link on this device.",!!error)});
+$("#aSetPw").addEventListener("click",async()=>{const p=$("#aNewPass").value;if(p.length<6){amsg("Use at least 6 characters.",true);return}
+  const {error}=await sb.auth.updateUser({password:p});amsg(error?error.message:"Password saved. You can sign in with it next time.",!!error);if(!error)$("#aNewPass").value=""});
+$("#aOut").addEventListener("click",async()=>{await sb.auth.signOut();$("#authDlg").close()});
+
+async function checkMe(session){
+  const u=session?.user;
+  if(!u){me=null;undoStack.length=0}
+  else{me={email:u.email,editor:false,name:""};
+    try{const w=await rpc("whoami",{});me.editor=!!w.editor;me.name=w.name||""}catch(e){console.error(e)}}
+  $("#acctBtn").textContent=me?"Account":"Sign in";
+  render();showState();
+}
+
+// ---------- start ----------
+loadCache();render();
+if(!SUPABASE_URL||!SUPABASE_ANON_KEY){status("Not connected to Supabase yet — see SETUP.md",true)}
+else if(!window.supabase){status("Couldn't load the sync library — check your connection and refresh",true)}
+else{
+  sb=window.supabase.createClient(SUPABASE_URL,SUPABASE_ANON_KEY,{auth:{persistSession:true,detectSessionInUrl:true}});
+  // a sign-in link that expired lands here with an error in the address
+  const hp=new URLSearchParams(location.hash.slice(1));
+  if(hp.get("error_description")){const m=hp.get("error_description");history.replaceState(null,"",location.pathname+location.search);
+    setTimeout(()=>{lastErr="Sign-in link problem: "+m;showState();setTimeout(()=>{lastErr="";showState()},8000)},500)}
+  sb.auth.onAuthStateChange((ev,session)=>{setTimeout(()=>checkMe(session),0)});
+  sb.channel("items-live")
+    .on("postgres_changes",{event:"*",schema:"public",table:"items"},p=>{
+      if(p.eventType==="DELETE"){if(p.old?.name&&!pending.get(p.old.name))rows.delete(p.old.name)}else applyRow(p.new);soon()})
+    .subscribe(s=>{if(s==="SUBSCRIBED"){live=true;loadAll()}else if(s==="CHANNEL_ERROR"||s==="TIMED_OUT"||s==="CLOSED")live=false;showState()});
+  loadAll();
+  setInterval(()=>{if(document.visibilityState==="visible")loadAll()},60000);
+  document.addEventListener("visibilitychange",()=>{if(document.visibilityState==="visible")loadAll()});
+}
 }
 </script>
 </body>
