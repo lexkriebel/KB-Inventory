@@ -53,7 +53,7 @@ label.chk input{width:18px;height:18px;accent-color:var(--acc)}
 .item.done .pick{cursor:default}
 .box{flex:none;width:22px;height:22px;border-radius:6px;border:2px solid var(--rule);display:grid;place-items:center;font-size:14px;color:var(--onacc)}
 .item.sel .box{background:var(--acc);border-color:var(--acc)}
-.nm{flex:1}.nm b{font-weight:600;font-size:17px}.nm small{display:block;color:var(--mute);font-size:14px}
+.nm{flex:1}.nm b{font-weight:600;font-size:17px}.tr{color:var(--mute);font-weight:400;font-size:16px}.nm small{display:block;color:var(--mute);font-size:14px}
 .pill{flex:none;font:600 13px/1 Lora,serif;padding:6px 10px;border-radius:99px;background:var(--acc2);color:var(--onacc2);white-space:nowrap}
 .item.done .pill{background:transparent;color:var(--acc2);border:1px solid var(--acc2)}
 .who{display:flex;flex-wrap:wrap;gap:6px;padding:0 14px 12px 50px;margin-top:-4px}
@@ -147,6 +147,7 @@ input,select{font:16px Lora,serif;min-height:44px;border-radius:10px;border:1px 
 <dialog id="itemDlg"><form id="itemForm">
   <h2 id="itemTitle">Edit item</h2>
   <label>Item<input id="iName" required maxlength="120"></label>
+  <label>Translation (shown in brackets)<input id="iTr" maxlength="80" placeholder="e.g. Mt Dew"></label>
   <label>How many needed<input id="iNeed" type="number" min="0" required inputmode="numeric"></label>
   <label>Packaging<input id="iPack" maxlength="80" placeholder="e.g. 12pk can"></label>
   <p class="msg" id="itemMsg"></p>
@@ -204,7 +205,7 @@ function render(){
     return `<div class="item${sel?" sel":""}${done?" done":""}">
       <button class="pick" data-id="${it.id}" aria-pressed="${sel}" ${done?'aria-disabled="true"':""}>
         <span class="box" aria-hidden="true">${sel?"✓":""}</span>
-        <span class="nm"><b>${esc(it.name)}</b><small>${esc(it.packaging||"")}${it.packaging?" · ":""}need ${it.needed}</small></span>
+        <span class="nm"><b>${esc(it.name)}</b>${it.translation?` <span class="tr">(${esc(it.translation)})</span>`:""}<small>${esc(it.packaging||"")}${it.packaging?" · ":""}need ${it.needed}</small></span>
         <span class="pill">${done?"Covered ✓":`${l} left`}</span>
       </button>
       <div class="who">${chips}${me?.editor?`<button class="edit-item" data-item="${it.id}">Edit item</button>`:""}</div>
@@ -218,7 +219,7 @@ function render(){
 async function loadAll(){
   if(!sb)return;
   const [a,b]=await Promise.all([
-    sb.from("bar_items").select("id,name,needed,packaging,sort").order("sort").order("id"),
+    sb.from("bar_items").select("id,name,needed,packaging,translation,sort").order("sort").order("id"),
     sb.from("bar_signups").select("id,item_id,character_name,qty,created_at").order("id")]);
   if(a.error||b.error){status("Couldn't load the sheet — has bar-setup.sql been run?",true);console.error(a.error||b.error);return}
   items=a.data;signups=b.data;loaded=true;
@@ -244,8 +245,8 @@ document.querySelectorAll("[data-close]").forEach(b=>b.addEventListener("click",
 $("#selGo").addEventListener("click",()=>{
   if(!selected.size)return;
   try{const s=JSON.parse(localStorage.getItem("rb-me")||"{}");if(s.r&&!$("#realName").value)$("#realName").value=s.r;if(s.c&&!$("#charName").value)$("#charName").value=s.c}catch(e){}
-  $("#lines").innerHTML=items.filter(i=>selected.has(i.id)).map(it=>`<label class="line"><span>${esc(it.name)}<small>${esc(it.packaging||"")}${it.packaging?" · ":""}up to ${left(it)}</small></span>
-    <input type="number" min="1" max="${left(it)}" value="1" required inputmode="numeric" data-id="${it.id}" aria-label="How many ${esc(it.name)}"></label>`).join("");
+  $("#lines").innerHTML=items.filter(i=>selected.has(i.id)).map(it=>`<label class="line"><span>${esc(it.name)}${it.translation?` <span class="tr">(${esc(it.translation)})</span>`:""}<small>${esc(it.packaging||"")}${it.packaging?" · ":""}up to ${left(it)}</small></span>
+    <input type="number" min="1" max="${left(it)}" value="1" required inputmode="numeric" data-id="${it.id}" aria-label="How many ${esc(it.name)}${it.translation?" ("+esc(it.translation)+")":""}"></label>`).join("");
   $("#signMsg").textContent="";$("#signMsg").className="msg";$("#signGo").disabled=false;
   $("#signDlg").showModal();($("#realName").value?$("#charName").value?$("#lines input"):$("#charName"):$("#realName")).focus();
 });
@@ -264,7 +265,7 @@ $("#signForm").addEventListener("submit",async e=>{
     for(const i of document.querySelectorAll("#lines input")){const it=items.find(x=>x.id===+i.dataset.id);if(it)i.max=left(it)}
     return}
   try{localStorage.setItem("rb-me",JSON.stringify({r:real,c:char}))}catch(e){}
-  const names=items.filter(i=>selected.has(i.id)).map(i=>`${list.find(l=>l.item_id===i.id).qty} × ${i.name}`);
+  const names=items.filter(i=>selected.has(i.id)).map(i=>`${list.find(l=>l.item_id===i.id).qty} × ${i.name}${i.translation?` (${i.translation})`:""}`);
   selected.clear();$("#signDlg").close();await loadAll();
   $("#thanksTitle").textContent=`Thank you, ${char}!`;
   $("#thanksText").textContent=`You're signed up to bring: ${names.join(", ")}.`;
@@ -274,7 +275,7 @@ $("#signForm").addEventListener("submit",async e=>{
 // ---------- organizer tools ----------
 let editing=null;
 function openEdit(id){const s=signups.find(x=>x.id===id);if(!s)return;editing=s;const it=items.find(i=>i.id===s.item_id);
-  $("#editWhat").textContent=`${it?.name||"Item"}${it?.packaging?" · "+it.packaging:""}`;
+  $("#editWhat").textContent=`${it?.name||"Item"}${it?.translation?` (${it.translation})`:""}${it?.packaging?" · "+it.packaging:""}`;
   $("#eChar").value=s.character_name;$("#eReal").value=realNames.get(id)||"";$("#eQty").value=s.qty;$("#editMsg").textContent="";$("#editDlg").showModal()}
 const fail=(el,e)=>{console.error(e);el.className="msg bad";el.textContent=/not_editor/.test(e?.message||"")?"Only organizers can change this.":"Couldn't save — try again."};
 $("#editForm").addEventListener("submit",async e=>{e.preventDefault();
@@ -285,14 +286,14 @@ $("#eDel").addEventListener("click",async()=>{if(!confirm(`Remove ${editing.char
 let itemEditing=null;
 function openItem(id){itemEditing=id?items.find(i=>i.id===id):null;
   $("#itemTitle").textContent=itemEditing?"Edit item":"Add item";$("#iDel").hidden=!itemEditing;
-  $("#iName").value=itemEditing?.name||"";$("#iNeed").value=itemEditing?.needed??1;$("#iPack").value=itemEditing?.packaging||"";
+  $("#iName").value=itemEditing?.name||"";$("#iNeed").value=itemEditing?.needed??1;$("#iPack").value=itemEditing?.packaging||"";$("#iTr").value=itemEditing?.translation||"";
   $("#itemMsg").textContent="";$("#itemDlg").showModal();$("#iName").focus()}
 $("#addItemBtn").addEventListener("click",()=>openItem(null));
 $("#itemForm").addEventListener("submit",async e=>{e.preventDefault();
-  const {error}=await sb.rpc("bar_save_item",{p_id:itemEditing?.id??null,p_name:$("#iName").value.trim(),p_needed:Math.max(0,Math.floor(+$("#iNeed").value||0)),p_packaging:$("#iPack").value.trim()});
+  const {error}=await sb.rpc("bar_save_item",{p_id:itemEditing?.id??null,p_name:$("#iName").value.trim(),p_needed:Math.max(0,Math.floor(+$("#iNeed").value||0)),p_packaging:$("#iPack").value.trim(),p_translation:$("#iTr").value.trim()});
   if(error)return fail($("#itemMsg"),error);$("#itemDlg").close();loadAll()});
 $("#iDel").addEventListener("click",async()=>{const n=taken(itemEditing.id);
-  if(!confirm(`Delete “${itemEditing.name}”${n?` and its ${signups.filter(s=>s.item_id===itemEditing.id).length} sign-up(s)`:""}?`))return;
+  if(!confirm(`Delete “${itemEditing.name}${itemEditing.translation?` (${itemEditing.translation})`:""}”${n?` and its ${signups.filter(s=>s.item_id===itemEditing.id).length} sign-up(s)`:""}?`))return;
   const {error}=await sb.rpc("bar_delete_item",{p_id:itemEditing.id});if(error)return fail($("#itemMsg"),error);$("#itemDlg").close();loadAll()});
 $("#clearBtn").addEventListener("click",async()=>{
   if(!signups.length)return alert("There are no sign-ups to clear.");

@@ -148,7 +148,9 @@ The bar page (`royaltea-bar.html`) uses the same Supabase project and the same *
 
 1. In Supabase, open **SQL Editor** → **New query**.
 2. Paste the whole of **`bar-setup.sql`** from this repository. Make sure nothing is highlighted, then click **Run**.
-3. The result at the bottom should say **bar_items 30**.
+3. The result at the bottom should say **bar_items 32** and **with_translation 19**.
+
+You can run `bar-setup.sql` again whenever it changes. It never removes sign-ups, and it only adds what's missing, such as the drink translations.
 
 How it works:
 
@@ -156,6 +158,6 @@ How it works:
 - The sheet shows **character names only**. Real names are visible only to editors, who sign in with **Organizer sign in** on the bar page.
 - After someone confirms, only editors can change things. Signed-in editors can:
   - click a name to change or remove that sign-up
-  - use **Edit item** or **Add item** to change the list
+  - use **Edit item** or **Add item** to change the list, including the real-world translation shown in brackets, e.g. Dew of the Mountain (Mt Dew)
   - use **Clear all sign-ups** to start a fresh sheet for the next event
 - **Colors:** the page uses the dark **Highland Evening** scheme (moss green, loch blue, amber, cream). The older light schemes can still be previewed by adding `?palette=heather`, `?palette=tartan`, `?palette=loch` or `?palette=shortbread` to the bar page address. To change it for everyone, change `data-palette="highland"` near the top of `royaltea-bar.html`.

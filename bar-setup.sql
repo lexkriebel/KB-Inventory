@@ -11,6 +11,7 @@ create table if not exists public.bar_items (
   name       text    not null check (length(trim(name)) between 1 and 120),
   needed     integer not null default 1 check (needed >= 0),
   packaging  text    not null default '' check (length(packaging) <= 80),
+  translation text   not null default '' check (length(translation) <= 80),
   sort       integer not null default 0,
   created_at timestamptz not null default now()
 );
@@ -23,6 +24,8 @@ create table if not exists public.bar_signups (
   qty            integer not null check (qty > 0),
   created_at     timestamptz not null default now()
 );
+alter table public.bar_items add column if not exists translation text not null default '';
+
 create index if not exists bar_signups_item_idx on public.bar_signups (item_id);
 
 -- Real names, kept separate so only editors can see them.
@@ -124,20 +127,22 @@ begin
 end $$;
 
 -- Add (p_id null) or change an item.
-create or replace function public.bar_save_item(p_id bigint, p_name text, p_needed integer, p_packaging text)
+drop function if exists public.bar_save_item(bigint, text, integer, text, text);
+create or replace function public.bar_save_item(p_id bigint, p_name text, p_needed integer, p_packaging text, p_translation text default '')
 returns bigint language plpgsql security definer
 set search_path = public, pg_temp as $$
 declare v_id bigint;
 begin
   perform public._require_editor();
   if p_id is null then
-    insert into public.bar_items (name, needed, packaging, sort)
-      values (trim(p_name), greatest(coalesce(p_needed, 1), 0), coalesce(trim(p_packaging), ''),
+    insert into public.bar_items (name, needed, packaging, translation, sort)
+      values (trim(p_name), greatest(coalesce(p_needed, 1), 0), coalesce(trim(p_packaging), ''), coalesce(trim(p_translation), ''),
               coalesce((select max(sort) from public.bar_items), 0) + 10)
       returning id into v_id;
   else
     update public.bar_items set name = trim(p_name), needed = greatest(coalesce(p_needed, 1), 0),
-      packaging = coalesce(trim(p_packaging), '') where id = p_id returning id into v_id;
+      packaging = coalesce(trim(p_packaging), ''), translation = coalesce(trim(p_translation), '')
+      where id = p_id returning id into v_id;
   end if;
   return v_id;
 end $$;
@@ -153,12 +158,12 @@ end $$;
 
 revoke execute on function public.bar_sign_up(text, text, jsonb), public.bar_admin_signups(),
   public.bar_edit_signup(bigint, text, text, integer), public.bar_delete_signup(bigint),
-  public.bar_clear_signups(), public.bar_save_item(bigint, text, integer, text),
+  public.bar_clear_signups(), public.bar_save_item(bigint, text, integer, text, text),
   public.bar_delete_item(bigint) from public, anon, authenticated;
 grant execute on function public.bar_sign_up(text, text, jsonb) to anon, authenticated;
 grant execute on function public.bar_admin_signups(), public.bar_edit_signup(bigint, text, text, integer),
   public.bar_delete_signup(bigint), public.bar_clear_signups(),
-  public.bar_save_item(bigint, text, integer, text), public.bar_delete_item(bigint) to authenticated;
+  public.bar_save_item(bigint, text, integer, text, text), public.bar_delete_item(bigint) to authenticated;
 
 -- ---------- 5. Live updates -------------------------------------------------
 do $$ begin
@@ -173,39 +178,74 @@ do $$ begin
 end $$;
 
 -- ---------- 6. The sign-up items (only added if the list is empty) -----------
-insert into public.bar_items (name, needed, packaging, sort)
-select v.name, v.needed, v.packaging, v.sort from (values
-  ('Dew of the Mountain', 1, '12pk can', 10),
-  ('Dwarven Ale', 1, '12pk can', 20),
-  ('Ale', 1, '12pk can', 30),
-  ('FOW Ale', 3, '12pk can', 40),
-  ('Lite Ale', 1, '12pk can', 50),
-  ('Ginger Beer', 1, '12pk can', 60),
-  ('Sea Foam Spirits', 1, '12pk can', 70),
-  ('Fae Wine', 1, '12pk can', 80),
-  ('Fuzzy Water', 4, '12pk can', 90),
-  ('Coffee', 3, '12pk K cup', 100),
-  ('Hot Coco', 1, '12pk K cup/Pack', 110),
-  ('Hot Tea', 2, '1 box', 120),
-  ('Monsterous Brew', 1, '12pk can', 130),
-  ('Bull''s Blood', 1, '12pk can', 140),
-  ('Celestial Brew', 1, '12pk can', 150),
-  ('Barrels', 1, '1cs', 160),
-  ('Boo Juice', 2, '12pk box', 170),
-  ('Muffins', 24, 'each', 180),
-  ('Cookies', 24, 'each', 190),
-  ('Cup O Soup', 24, 'each', 200),
-  ('Chips', 1, '28 ea bag', 210),
-  ('Pickles', 2, '1 jars', 220),
-  ('Moo Mix', 2, 'bags', 230),
-  ('Paper Cups', 1, '20ct sleeve', 240),
-  ('Coffee Cups', 1, '20ct sleeve', 250),
-  ('Plastic Forks', 1, '50ct box', 260),
-  ('Plastic Spoons', 1, '50ct box', 270),
-  ('Plastic Knives', 1, '20ct box', 280),
-  ('Napkins', 1, '100ct pack', 290),
-  ('Paper Towels', 1, 'roll', 300)
-) as v(name, needed, packaging, sort)
+insert into public.bar_items (name, needed, packaging, translation, sort)
+select v.name, v.needed, v.packaging, v.translation, v.sort from (values
+  ('Dew of the Mountain', 1, '12pk can', 'Mt Dew', 10),
+  ('Dwarven Ale', 1, '12pk can', 'Root Beer', 20),
+  ('Ale', 1, '12pk can', 'Coke/Cola', 30),
+  ('FOW Ale', 1, '12pk can', 'Orange Coke', 40),
+  ('FOW Ale', 1, '12pk can', 'Vanilla Coke', 50),
+  ('FOW Ale', 1, '12pk can', 'Cherry Coke', 60),
+  ('Lite Ale', 1, '12pk can', 'Coke Zero/Diet Cola', 70),
+  ('Ginger Beer', 1, '12pk can', 'Ginger Ale', 80),
+  ('Sea Foam Spirits', 1, '12pk can', 'Baja Blast', 90),
+  ('Fae Wine', 1, '12pk can', 'Sprite', 100),
+  ('Fuzzy Water', 4, '12pk can', 'Seltzer Water', 110),
+  ('Coffee', 3, '12pk K cup', 'K Cups', 120),
+  ('Hot Coco', 1, '12pk K cup/Pack', 'K Cups/Packs', 130),
+  ('Hot Tea', 2, '1 box', '', 140),
+  ('Monsterous Brew', 1, '12pk can', 'Monsters, sugar free', 150),
+  ('Bull''s Blood', 1, '12pk can', 'Red Bull', 160),
+  ('Celestial Brew', 1, '12pk can', 'Celsius', 170),
+  ('Barrels', 1, '1cs', 'Hug Barrels', 180),
+  ('Boo Juice', 2, '12pk box', 'Kool Aid Pouches', 190),
+  ('Muffins', 24, 'each', '', 200),
+  ('Cookies', 24, 'each', '', 210),
+  ('Cup O Soup', 24, 'each', '', 220),
+  ('Chips', 1, '28 ea bag', '', 230),
+  ('Pickles', 2, '1 jars', '', 240),
+  ('Moo Mix', 2, 'bags', 'Trail Mix', 250),
+  ('Paper Cups', 1, '20ct sleeve', '', 260),
+  ('Coffee Cups', 1, '20ct sleeve', '', 270),
+  ('Plastic Forks', 1, '50ct box', '', 280),
+  ('Plastic Spoons', 1, '50ct box', '', 290),
+  ('Plastic Knives', 1, '20ct box', '', 300),
+  ('Napkins', 1, '100ct pack', '', 310),
+  ('Paper Towels', 1, 'roll', '', 320)
+) as v(name, needed, packaging, translation, sort)
 where not exists (select 1 from public.bar_items);
 
-select count(*) as bar_items from public.bar_items;
+-- ---------- 7. Update a sheet made before translations were added -------------
+-- Splits the single "FOW Ale x3" into its three flavours and fills in translations.
+-- Does nothing if this has already been done.
+do $$
+declare v_fow bigint; v_sort integer;
+begin
+  if (select count(*) from public.bar_items where name = 'FOW Ale') = 1 then
+    select id, sort into v_fow, v_sort from public.bar_items where name = 'FOW Ale' and translation = '';
+    if v_fow is not null then
+      update public.bar_items set needed = 1, translation = 'Orange Coke' where id = v_fow;
+      insert into public.bar_items (name, needed, packaging, translation, sort) values
+        ('FOW Ale', 1, '12pk can', 'Vanilla Coke', v_sort + 1),
+        ('FOW Ale', 1, '12pk can', 'Cherry Coke', v_sort + 2);
+    end if;
+  end if;
+  update public.bar_items set translation = 'Mt Dew' where name = 'Dew of the Mountain' and translation = '';
+  update public.bar_items set translation = 'Root Beer' where name = 'Dwarven Ale' and translation = '';
+  update public.bar_items set translation = 'Coke/Cola' where name = 'Ale' and translation = '';
+  update public.bar_items set translation = 'Coke Zero/Diet Cola' where name = 'Lite Ale' and translation = '';
+  update public.bar_items set translation = 'Ginger Ale' where name = 'Ginger Beer' and translation = '';
+  update public.bar_items set translation = 'Baja Blast' where name = 'Sea Foam Spirits' and translation = '';
+  update public.bar_items set translation = 'Sprite' where name = 'Fae Wine' and translation = '';
+  update public.bar_items set translation = 'Seltzer Water' where name = 'Fuzzy Water' and translation = '';
+  update public.bar_items set translation = 'K Cups' where name = 'Coffee' and translation = '';
+  update public.bar_items set translation = 'K Cups/Packs' where name = 'Hot Coco' and translation = '';
+  update public.bar_items set translation = 'Monsters, sugar free' where name = 'Monsterous Brew' and translation = '';
+  update public.bar_items set translation = 'Red Bull' where name = 'Bull''s Blood' and translation = '';
+  update public.bar_items set translation = 'Celsius' where name = 'Celestial Brew' and translation = '';
+  update public.bar_items set translation = 'Hug Barrels' where name = 'Barrels' and translation = '';
+  update public.bar_items set translation = 'Kool Aid Pouches' where name = 'Boo Juice' and translation = '';
+  update public.bar_items set translation = 'Trail Mix' where name = 'Moo Mix' and translation = '';
+end $$;
+
+select count(*) as bar_items, count(*) filter (where translation <> '') as with_translation from public.bar_items;
