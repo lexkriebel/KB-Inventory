@@ -9,20 +9,21 @@
 <script src="nav.js" defer></script>
 <style>
 :root{color-scheme:dark;
---bg:#07070d;--panel:#13122a;--panel2:#1b1940;--ink:#e9e7f7;--mute:#9b97c4;--rule:#29265a;
---blue:#5aa9ff;--purple:#a78bfa;--green:#3ddc97}
+/* Garnet & Gilt */
+--bg:#190a10;--panel:#2a1019;--panel2:#381522;--ink:#f6ece8;--mute:#c2b3b6;--rule:#4a1d2a;
+--red:#b8263f;--gold:#e6c26a;--gold2:#fbe3a0;--silver:#b7bdc6}
 *{box-sizing:border-box;min-width:0}
 body{margin:0;min-height:100vh;background:var(--bg);color:var(--ink);font:16px/1.5 "Alegreya Sans",system-ui,sans-serif;overflow-x:clip}
-header{padding:clamp(20px,3vw,40px) max(4vw,14px);background:radial-gradient(ellipse at 15% 0%,#1a1f5a 0,transparent 60%),radial-gradient(ellipse at 90% 10%,#2a1452 0,transparent 55%)}
+header{padding:clamp(20px,3vw,40px) max(4vw,14px);background:radial-gradient(ellipse at 15% 0%,#4a0f1f 0,transparent 60%),radial-gradient(ellipse at 90% 10%,#3a2410 0,transparent 55%);border-bottom:2px solid var(--red);margin-bottom:16px}
 .wrap{max-width:1000px;margin:0 auto}
-h1{font:800 clamp(28px,4.4vw,42px)/1.05 Cinzel,serif;margin:0 0 6px;text-wrap:balance;color:var(--purple);background:linear-gradient(90deg,var(--blue),var(--purple) 55%,var(--green));-webkit-background-clip:text;background-clip:text;-webkit-text-fill-color:transparent}
+h1{font:800 clamp(28px,4.4vw,42px)/1.05 Cinzel,serif;margin:0 0 6px;text-wrap:balance;color:var(--gold);background:linear-gradient(90deg,var(--gold),var(--gold2) 45%,var(--silver));-webkit-background-clip:text;background-clip:text;-webkit-text-fill-color:transparent}
 .sub{color:var(--mute);margin:0}
 main{padding:8px max(4vw,14px) 48px}
-.card{display:block;background:var(--panel);border:1px solid var(--rule);border-radius:14px;padding:18px 20px;color:var(--ink);text-decoration:none}
-a.card:hover{border-color:var(--purple)}a.card:focus-visible{outline:2px solid var(--green);outline-offset:2px}
-.card h2{font:600 19px Cinzel,serif;margin:0 0 4px;color:var(--purple)}.card p{margin:0;color:var(--mute)}
+.card{display:block;background:var(--panel);border:1px solid var(--rule);border-top:3px solid var(--red);border-radius:14px;padding:18px 20px;color:var(--ink);text-decoration:none}
+a.card:hover{border-color:var(--gold)}a.card:focus-visible{outline:2px solid var(--gold);outline-offset:2px}
+.card h2{font:600 19px Cinzel,serif;margin:0 0 4px;color:var(--gold)}.card p{margin:0;color:var(--mute)}
 .grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(220px,1fr));gap:12px}
-.tag{display:inline-block;margin-left:8px;font:500 12px "Alegreya Sans",sans-serif;color:var(--green);border:1px solid var(--green);border-radius:99px;padding:0 8px;vertical-align:middle}
+.tag{display:inline-block;margin-left:8px;font:500 12px "Alegreya Sans",sans-serif;color:var(--silver);border:1px solid var(--silver);border-radius:99px;padding:0 8px;vertical-align:middle}
 .tag.soon{color:var(--mute);border-color:var(--rule)}
 </style>
 </head>

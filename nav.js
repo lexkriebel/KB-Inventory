@@ -1,6 +1,6 @@
 // Wayfair Town site menu: a collapsible bar on the far left of every page.
-// To add, rename or reorder pages, edit LINKS below. A page can recolor the menu by
-// setting --nav-bg, --nav-ink, --nav-mute, --nav-rule, --nav-hover, --nav-icon, --nav-active, --nav-brand. Each page loads this file with
+// To add, rename or reorder pages, edit LINKS below. The menu has its own fixed colours
+// (the --wn-* values at the top of the styles), so it looks the same on every page. Each page loads this file with
 //   <script src="nav.js" defer></script>
 (() => {
   const LINKS = [
@@ -14,21 +14,24 @@
   const icon = d => `<svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">${d}</svg>`;
 
   const css = `
+/* The menu keeps its own Garnet & Gilt colours on every page. */
+.wnav,.wbar{--wn-bg:#190a10;--wn-bg2:#2a1019;--wn-ink:#f6ece8;--wn-mute:#c2b3b6;--wn-rule:#4a1d2a;--wn-hover:#381522;
+  --wn-icon:#b7bdc6;--wn-active:#e6c26a;--wn-brand:#e6c26a;--wn-font:Cinzel;color-scheme:dark}
 :root{--navW:216px}
 body.nav-mini{--navW:64px}
 .wnav{position:fixed;left:0;top:0;bottom:0;z-index:40;width:var(--navW);display:flex;flex-direction:column;gap:4px;padding:12px 10px;
-  background:var(--nav-bg,#0b0a18);border-right:1px solid var(--nav-rule,var(--rule,#29265a));transition:width .18s;overflow:hidden}
+  background:linear-gradient(180deg,var(--wn-bg2),var(--wn-bg));border-right:1px solid var(--wn-rule);transition:width .18s;overflow:hidden}
 .wnav .top{display:flex;align-items:center;justify-content:space-between;gap:6px;min-height:44px;margin-bottom:8px}
-.wnav .brand{font:700 16px/1.1 var(--nav-font,Cinzel),serif;color:var(--nav-brand,var(--purple,#a78bfa));white-space:nowrap;padding-left:6px}
+.wnav .brand{font:700 16px/1.1 var(--wn-font),serif;color:var(--wn-brand);white-space:nowrap;padding-left:6px}
 .wnav .tog{all:unset;box-sizing:border-box;cursor:pointer;width:44px;height:44px;flex:none;display:grid;place-items:center;border-radius:10px;
-  color:var(--nav-mute,var(--mute,#9b97c4));border:1px solid var(--nav-rule,var(--rule,#29265a))}
-.wnav .tog:hover{color:var(--nav-ink,var(--ink,#e9e7f7));border-color:var(--nav-brand,var(--purple,#a78bfa))}
-.wnav a{display:flex;align-items:center;gap:12px;min-height:44px;padding:0 12px;border-radius:10px;color:var(--nav-ink,var(--ink,#e9e7f7));
+  color:var(--wn-mute);border:1px solid var(--wn-rule)}
+.wnav .tog:hover{color:var(--wn-ink);border-color:var(--wn-brand)}
+.wnav a{display:flex;align-items:center;gap:12px;min-height:44px;padding:0 12px;border-radius:10px;color:var(--wn-ink);
   text-decoration:none;white-space:nowrap;font:500 15px/1.2 "Alegreya Sans",system-ui,sans-serif}
-.wnav a svg{flex:none;color:var(--nav-icon,var(--blue,#5aa9ff))}
-.wnav a:hover{background:var(--nav-hover,var(--panel2,#1b1940))}
-.wnav a[aria-current=page]{background:var(--nav-hover,var(--panel2,#1b1940));box-shadow:inset 3px 0 0 var(--nav-active,var(--green,#3ddc97))}
-.wnav a[aria-current=page] svg{color:var(--nav-active,var(--green,#3ddc97))}
+.wnav a svg{flex:none;color:var(--wn-icon)}
+.wnav a:hover{background:var(--wn-hover)}
+.wnav a[aria-current=page]{background:var(--wn-hover);box-shadow:inset 3px 0 0 var(--wn-active)}
+.wnav a[aria-current=page] svg{color:var(--wn-active)}
 .wnav a:focus-visible,.wnav .tog:focus-visible,.wbar button:focus-visible{outline:2px solid var(--green,#3ddc97);outline-offset:1px}
 body.nav-mini .wnav .brand,body.nav-mini .wnav a span{display:none}
 body.nav-mini .wnav .top{justify-content:center}
@@ -43,13 +46,18 @@ body.nav-mini .wnav a{justify-content:center;padding:0}
   body.nav-mini .wnav .brand,body.nav-mini .wnav a span{display:inline}
   body.nav-mini .wnav a{justify-content:flex-start;padding:0 12px}
   body.nav-mini .wnav .top{justify-content:space-between}
-  .wbar{display:flex;align-items:center;gap:10px;padding:10px max(4vw,14px);border-bottom:1px solid var(--nav-rule,var(--rule,#29265a));background:var(--nav-bg,#0b0a18)}
+  .wbar{display:flex;align-items:center;gap:10px;padding:10px max(4vw,14px);border-bottom:1px solid var(--wn-rule);background:var(--wn-bg)}
   .wbar button{all:unset;box-sizing:border-box;cursor:pointer;display:flex;align-items:center;gap:8px;min-height:44px;padding:0 14px;
-    border-radius:10px;border:1px solid var(--nav-rule,var(--rule,#29265a));color:var(--nav-ink,var(--ink,#e9e7f7));font:500 16px "Alegreya Sans",system-ui,sans-serif}
-  .wbar b{font:700 16px var(--nav-font,Cinzel),serif;color:var(--nav-brand,var(--purple,#a78bfa))}
+    border-radius:10px;border:1px solid var(--wn-rule);color:var(--wn-ink);font:500 16px "Alegreya Sans",system-ui,sans-serif}
+  .wbar b{font:700 16px var(--wn-font),serif;color:var(--wn-brand)}
 }
 @media(prefers-reduced-motion:reduce){.wnav{transition:none}}`;
 
+  if (!document.querySelector('link[href*="family=Cinzel"]')) { // the menu's heading font
+    const f = document.createElement("link"); f.rel = "stylesheet";
+    f.href = "https://fonts.googleapis.com/css2?family=Cinzel:wght@600;700&family=Alegreya+Sans:wght@500&display=swap";
+    document.head.appendChild(f);
+  }
   const st = document.createElement("style"); st.textContent = css; document.head.appendChild(st);
 
   const nav = document.createElement("nav");
