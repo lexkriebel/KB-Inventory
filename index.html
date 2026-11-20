@@ -27,7 +27,8 @@ a.card:hover{border-color:var(--gold)}a.card:focus-visible{outline:2px solid var
 .tag{display:inline-block;margin-left:8px;font:500 12px "Alegreya Sans",sans-serif;color:var(--silver);border:1px solid var(--silver);border-radius:99px;padding:0 8px;vertical-align:middle}
 .tag.soon{color:var(--mute);border-color:var(--rule)}
 [hidden]{display:none!important}
-.admin{margin-top:28px;max-width:520px;border-top-color:var(--gold)}
+.admin{margin:32px auto 0;max-width:440px;border-top-color:var(--gold)}
+.admin h2{text-align:center}.admin>.sub{text-align:center}
 .admin h2{font:600 19px Cinzel,serif;margin:0 0 4px;color:var(--gold)}
 .admin form,.admin .in{display:grid;gap:10px;margin-top:10px}
 .admin label{display:grid;gap:4px;font-weight:500}
@@ -38,13 +39,37 @@ a.card:hover{border-color:var(--gold)}a.card:focus-visible{outline:2px solid var
 .row{display:flex;gap:8px;flex-wrap:wrap;align-items:center}
 .or{display:flex;align-items:center;gap:10px;color:var(--mute);font-size:13px}.or:before,.or:after{content:"";flex:1;border-top:1px solid var(--rule)}
 .msg{margin:0;font-size:14px;min-height:1.3em;color:var(--mute)}.msg.bad{color:#ff9a9a}.msg.ok{color:var(--gold)}
-.who b{color:var(--gold)}
+header .wrap{display:flex;flex-wrap:wrap;justify-content:space-between;align-items:flex-start;gap:12px 20px}
+.acct{position:relative;flex:none;font-size:15px}
+.acct .pill{display:inline-flex;align-items:center;gap:8px;min-height:40px;padding:0 14px;border-radius:99px;border:1px solid var(--rule);background:#00000033;color:var(--mute);text-decoration:none}
+.acct summary{list-style:none;cursor:pointer}.acct summary::-webkit-details-marker{display:none}
+.acct summary.pill{color:var(--ink);border-color:var(--gold)}
+.acct summary:focus-visible,.acct a.pill:focus-visible{outline:2px solid var(--gold);outline-offset:2px}
+.dot{width:9px;height:9px;border-radius:50%;background:var(--mute)}.dot.on{background:#7fd18a;box-shadow:0 0 6px #7fd18a}
+.acct .pop{position:absolute;right:0;top:calc(100% + 8px);z-index:20;width:min(300px,86vw);background:var(--panel);border:1px solid var(--rule);border-top:3px solid var(--gold);border-radius:12px;padding:14px;display:grid;gap:10px;box-shadow:0 10px 30px #0008}
+.acct .pop p{margin:0;color:var(--mute);font-size:14px}.acct .pop b{color:var(--gold)}
+.acct .pop input{font:16px "Alegreya Sans",sans-serif;min-height:44px;border-radius:9px;border:1px solid var(--rule);background:var(--bg);color:var(--ink);padding:0 12px;width:100%}
+.acct .pop label{display:grid;gap:4px;font-weight:500;font-size:14px}
 </style>
 </head>
 <body>
 <header><div class="wrap">
-  <h1>Wayfair Town</h1>
-  <p class="sub">Welcome. Pick a place to visit.</p>
+  <div>
+    <h1>Wayfair Town</h1>
+    <p class="sub">Welcome. Pick a place to visit.</p>
+  </div>
+  <div class="acct" id="acct">
+    <a class="pill" id="acctOut" href="#adminTitle"><span class="dot"></span>Not signed in</a>
+    <details id="acctIn" hidden>
+      <summary class="pill"><span class="dot on"></span><span id="acctName">Signed in</span> ▾</summary>
+      <div class="pop">
+        <p id="acctWho"></p>
+        <label>Change password<input id="aNewPass" type="password" minlength="6" autocomplete="new-password" placeholder="At least 6 characters"></label>
+        <div class="row"><button type="button" class="btn" id="aSetPw">Save password</button><button type="button" class="btn" id="aOut">Sign out</button></div>
+        <p class="msg" id="acctMsg" aria-live="polite"></p>
+      </div>
+    </details>
+  </div>
 </div></header>
 <main><div class="wrap">
   <div class="grid">
@@ -54,22 +79,16 @@ a.card:hover{border-color:var(--gold)}a.card:focus-visible{outline:2px solid var
     <a class="card" href="archives.html"><h2>Town Archives <span class="tag soon">Soon</span></h2><p>Records and history of the town.</p></a>
   </div>
 
-  <section class="card admin" aria-labelledby="adminTitle">
-    <h2 id="adminTitle">Organizer sign in</h2>
-    <p class="sub" id="adminSub">Only needed to edit the Town Inventory or manage the Royaltea Bar sheet. Everyone can view without signing in.</p>
+  <section class="card admin" id="adminBox" aria-labelledby="adminTitle">
+    <h2 id="adminTitle">Admin Sign In</h2>
+    <p class="sub">For organizers who edit the Town Inventory or manage the Royaltea Bar sheet. Everyone can view without signing in.</p>
     <form id="authForm" autocomplete="on">
       <label>Email<input id="aEmail" type="email" required autocomplete="email" autocapitalize="off"></label>
       <label>Password<input id="aPass" type="password" autocomplete="current-password"></label>
-      <div class="row"><button class="btn pri">Sign in</button></div>
+      <div class="row"><button class="btn pri" style="flex:1">Sign in</button></div>
       <div class="or">or</div>
-      <div class="row"><button type="button" class="btn" id="aLinkBtn">Email me a sign-in link</button></div>
+      <div class="row"><button type="button" class="btn" id="aLinkBtn" style="flex:1">Email me a sign-in link</button></div>
     </form>
-    <div class="in" id="authIn" hidden>
-      <p class="who" id="aWho" style="margin:0"></p>
-      <div class="row"><a class="btn" href="inventory.html" style="display:inline-flex;align-items:center;text-decoration:none">Go to Town Inventory</a><a class="btn" href="royaltea-bar.html" style="display:inline-flex;align-items:center;text-decoration:none">Go to Royaltea Bar</a></div>
-      <label>Set a new password (optional)<input id="aNewPass" type="password" minlength="6" autocomplete="new-password"></label>
-      <div class="row"><button type="button" class="btn" id="aSetPw">Save password</button><button type="button" class="btn" id="aOut">Sign out</button></div>
-    </div>
     <p class="msg" id="aMsg" aria-live="polite"></p>
   </section>
 </div></main>
@@ -80,21 +99,22 @@ const SUPABASE_URL = "https://mrizrtptqmryiiffakah.supabase.co";
 const SUPABASE_ANON_KEY = "sb_publishable_5RgXb2Cq79861hFT7k_gbQ_sUzPWD3p";
 const $=s=>document.querySelector(s);
 const msg=(t,cls)=>{$("#aMsg").textContent=t||"";$("#aMsg").className="msg"+(cls?" "+cls:"")};
-if(!window.supabase){msg("Couldn't load sign-in — check your connection and refresh.","bad");$("#authForm").hidden=true}
+if(!window.supabase){msg("Couldn't load sign-in — check your connection and refresh.","bad");$("#authForm").hidden=true;$("#acct").hidden=true}
 else{
   const sb=window.supabase.createClient(SUPABASE_URL,SUPABASE_ANON_KEY,{auth:{persistSession:true,detectSessionInUrl:true}});
   const hp=new URLSearchParams(location.hash.slice(1));
   if(hp.get("error_description")){msg("Sign-in link problem: "+hp.get("error_description"),"bad");history.replaceState(null,"",location.pathname+location.search)}
+  const esc=s=>String(s??"").replace(/[&<>"']/g,m=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[m]));
+  const amsg=(t,cls)=>{$("#acctMsg").textContent=t||"";$("#acctMsg").className="msg"+(cls?" "+cls:"")};
   async function show(session){
     const u=session?.user;
-    $("#authForm").hidden=!!u;$("#authIn").hidden=!u;
-    if(!u){$("#adminTitle").textContent="Organizer sign in";$("#adminSub").hidden=false;return}
-    $("#adminTitle").textContent="Organizer";$("#adminSub").hidden=true;
+    $("#adminBox").hidden=!!u;$("#acctOut").hidden=!!u;$("#acctIn").hidden=!u;
+    if(!u){$("#acctIn").open=false;return}
     let w=null;try{const r=await sb.rpc("whoami");w=r.data}catch(e){}
-    const esc=s=>String(s??"").replace(/[&<>"']/g,m=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[m]));
-    $("#aWho").innerHTML=w?.editor
-      ?`Signed in as <b>${esc(w.name||u.email)}</b> (${esc(u.email)}). You can edit the Town Inventory and manage the Royaltea Bar sheet.`
-      :`Signed in as <b>${esc(u.email)}</b>, but this email isn't on the editors list yet, so you can only view. Ask whoever runs the site to add it.`;
+    $("#acctName").textContent=w?.editor?`Signed in · ${w.name||u.email}`:"Signed in · view only";
+    $("#acctWho").innerHTML=w?.editor
+      ?`Signed in as <b>${esc(w.name||u.email)}</b><br>${esc(u.email)}<br>You can edit the Town Inventory and manage the Royaltea Bar sheet.`
+      :`Signed in as <b>${esc(u.email)}</b>. This email isn't on the admin list yet, so you can only view.`;
   }
   sb.auth.onAuthStateChange((ev,session)=>{setTimeout(()=>show(session),0)});
   $("#authForm").addEventListener("submit",async e=>{e.preventDefault();
@@ -106,9 +126,11 @@ else{
     const email=$("#aEmail").value.trim();if(!email||!$("#aEmail").checkValidity()){msg("Type your email first.","bad");return}
     msg("Sending…");const {error}=await sb.auth.signInWithOtp({email,options:{emailRedirectTo:location.origin+location.pathname}});
     msg(error?(/rate|limit/i.test(error.message)?"Too many emails sent recently — wait a while, or sign in with a password.":error.message):"Check your email and open the link on this device.",error?"bad":"ok")});
-  $("#aSetPw").addEventListener("click",async()=>{const p=$("#aNewPass").value;if(p.length<6){msg("Use at least 6 characters.","bad");return}
-    const {error}=await sb.auth.updateUser({password:p});msg(error?error.message:"Password saved. You can sign in with it next time.",error?"bad":"ok");if(!error)$("#aNewPass").value=""});
-  $("#aOut").addEventListener("click",async()=>{await sb.auth.signOut();msg("Signed out.","ok")});
+  $("#aSetPw").addEventListener("click",async()=>{const p=$("#aNewPass").value;if(p.length<6){amsg("Use at least 6 characters.","bad");return}
+    const {error}=await sb.auth.updateUser({password:p});amsg(error?error.message:"Password saved.",error?"bad":"ok");if(!error)$("#aNewPass").value=""});
+  $("#aOut").addEventListener("click",async()=>{await sb.auth.signOut();amsg("");msg("Signed out.","ok")});
+  document.addEventListener("click",e=>{if(!$("#acctIn").contains(e.target))$("#acctIn").open=false});
+  document.addEventListener("keydown",e=>{if(e.key==="Escape"&&$("#acctIn").open){$("#acctIn").open=false;$("#acctIn summary").focus()}});
 }
 }
 </script>

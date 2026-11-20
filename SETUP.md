@@ -5,7 +5,7 @@
 These steps connect the inventory page to a free Supabase database. When you're done:
 
 - **Anyone with the link** can see the live counts. They don't need to log in.
-- **Approved editors** sign in once on the **Home page** (Organizer sign in) and can then change counts on every page. Everyone else sees the change within a second or two.
+- **Approved editors** sign in once on the **Home page** (Admin Sign In) and can then change counts on every page. Everyone else sees the change within a second or two.
 - Every change is logged: who, which item, old → new, when. You can see it under **Recent changes** on the page.
 
 It takes about 20 minutes. You don't need to install anything. Everything happens in your web browser.
@@ -64,7 +64,7 @@ Supabase's built-in email sender is very limited on the free plan. It only sends
 2. Click **Add user** → **Create new user**.
 3. Enter the person's **email** and a starting **password** (at least 6 characters). Tick **Auto Confirm User**.
 4. Click **Create user**.
-5. Tell the person their password privately. Once signed in on the Home page, they can change it there under **Organizer**.
+5. Tell the person their password privately. Once signed in on the Home page, they can change it from the **Signed in** menu in the top-right corner.
 
 Also make sure that email is in the **editors** table (step 3). Creating a user lets them sign in. The **editors** table is what lets them edit.
 
@@ -115,7 +115,7 @@ This is where people land after clicking a sign-in link in their email.
 ## 8. Test it
 
 1. Open `https://lexkriebel.github.io/KB-Inventory/inventory.html` in a **private/incognito window**. You should see the counts. Next to the toolbar, the status should say **Live · view only · organizers sign in on the Home page**.
-2. In a normal window, open the Home page (`https://lexkriebel.github.io/KB-Inventory/`), enter your email and password under **Organizer sign in** and click **Sign in**. Then open **Town Inventory**: the status should say **Live · editing as (your name)**, and the **Log inventory** box appears.
+2. In a normal window, open the Home page (`https://lexkriebel.github.io/KB-Inventory/`), enter your email and password under **Admin Sign In** and click **Sign in**. The top-right corner should change to **Signed in · (your name)**. Then open **Town Inventory**: the status should say **Live · editing as (your name)**, and the **Log inventory** box appears.
 3. Press **+** on an item. Watch the private window, or your phone: the number should change there within a couple of seconds, without refreshing.
 4. Click **Recent changes**. Your edit should be listed with your name.
 5. In Supabase, open **Table Editor** → **change_log** to see the full log, including email addresses. Visitors to the page only see names, never emails.
