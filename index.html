@@ -53,12 +53,12 @@ input,select,.btn{font:inherit;font-size:16px;min-height:44px;border-radius:9px;
 input:focus-visible,select:focus-visible,.btn:focus-visible{outline:2px solid var(--acc);outline-offset:1px}
 #q{flex:1 1 220px}
 #sideBtn{display:flex;align-items:center;gap:6px}
-.logp{margin-top:18px;background:var(--panel);border:1px solid var(--rule);border-radius:12px;padding:12px 14px;max-width:1100px}
+.logp{margin-top:12px;background:var(--panel);border:1px solid var(--rule);border-radius:12px;padding:12px 14px;max-width:1100px}
 .logp h2{font:600 16px Cinzel,serif;color:var(--green);margin:0 0 8px}
 .logp form{display:flex;flex-wrap:wrap;gap:8px;align-items:center}
-#lgName{flex:2 1 220px}#lgCat{flex:1 1 170px}#lgMode{flex:0 1 150px}#lgQty{flex:0 0 96px;text-align:right}
+#lgName{flex:2 1 160px}#lgCat{flex:1 1 150px}#lgMode{flex:0 1 135px}#lgQty{flex:0 0 92px;text-align:right;padding:0 10px}
 #lgCat:disabled{opacity:.7}
-.logp .btn.pri{flex:1 0 96px;max-width:160px}@media(max-width:600px){.logp .btn.pri{max-width:none}}
+.logp .btn.pri{flex:0 0 84px}@media(max-width:600px){.logp .btn.pri{flex:1 0 84px}}
 .logp .msg{margin-top:6px;min-height:1.4em}.logp .msg.ok{color:var(--green)}
 .btn{cursor:pointer;font-weight:500}.btn.pri{background:var(--acc);color:var(--accink);border-color:var(--acc)}
 .btn:disabled{opacity:.45;cursor:default}
@@ -72,7 +72,9 @@ label.chk input{min-height:0;width:18px;height:18px;accent-color:var(--acc)}
 .qty{display:flex;align-items:center;gap:4px}
 .qty button{width:44px;height:44px;border-radius:9px;border:1px solid var(--rule);background:var(--panel);color:var(--ink);font-size:20px;cursor:pointer;line-height:1}
 .qty button:focus-visible{outline:2px solid var(--acc)}
-.qty input{width:68px;text-align:right;padding:0 8px;font-variant-numeric:tabular-nums;font-weight:700}
+.num{min-width:4ch;text-align:right;padding-right:4px;font-variant-numeric:tabular-nums;font-weight:700;font-size:17px}
+.qty .del{width:36px;height:36px}
+.row{min-height:44px}
 .del{color:var(--warn)!important;font-size:15px!important}
 .empty{padding:40px 0;color:var(--mute);text-align:center}
 .status{font-size:13px;color:var(--mute);margin-left:auto}
@@ -84,10 +86,9 @@ textarea{font:14px/1.4 ui-monospace,monospace;width:100%;min-height:220px;border
 .drow{display:flex;gap:8px;justify-content:flex-end;flex-wrap:wrap}
 .flash{animation:fl .5s}@keyframes fl{from{background:color-mix(in srgb,var(--acc) 25%,transparent)}}
 @media(prefers-reduced-motion:reduce){.flash{animation:none}}
-@media(max-width:600px){.status{margin-left:0;width:100%}.qty button{width:40px}.qty input{width:58px}}
+@media(max-width:600px){.status{margin-left:0;width:100%}}
 /* view-only mode (not signed in, or not an approved editor) */
 .ro .qty button,.ro .edonly{display:none!important}
-.ro .qty input{border-color:transparent;background:transparent}
 [hidden]{display:none!important}
 .status.bad{color:var(--warn)}
 .msg{margin:0;font-size:14px;color:var(--mute)}.msg.bad{color:var(--warn)}
@@ -102,22 +103,6 @@ textarea{font:14px/1.4 ui-monospace,monospace;width:100%;min-height:220px;border
 <header class="band"><div class="wrap">
   <h1>Quartermaster's Inventory</h1>
   <p class="sub" id="sum">Loading the ledger…</p>
-  <section class="logp edonly" aria-labelledby="lgTitle">
-    <h2 id="lgTitle">Log inventory</h2>
-    <form id="lgForm" autocomplete="off">
-      <input id="lgName" list="lgList" placeholder="Item name…" aria-label="Item name" required>
-      <datalist id="lgList"></datalist>
-      <select id="lgCat" aria-label="Category"></select>
-      <select id="lgMode" aria-label="How to change the count">
-        <option value="set">New count</option>
-        <option value="add">Add</option>
-        <option value="sub">Remove</option>
-      </select>
-      <input id="lgQty" type="number" min="0" inputmode="numeric" placeholder="Count" aria-label="Count" required>
-      <button class="btn pri">Log</button>
-    </form>
-    <p class="msg" id="lgMsg" aria-live="polite"></p>
-  </section>
 </div></header>
 
 <div class="tools"><div class="wrap">
@@ -142,7 +127,25 @@ textarea{font:14px/1.4 ui-monospace,monospace;width:100%;min-height:220px;border
     <div class="sidehead">Categories<button id="sideClose" aria-label="Hide categories" title="Hide categories">«</button></div>
     <nav class="tally" id="tally"></nav>
   </aside>
-  <main style="padding:8px 0 40px"><div id="list"></div></main>
+  <main style="padding:8px 0 40px">
+    <section class="logp edonly" aria-labelledby="lgTitle">
+      <h2 id="lgTitle">Log inventory</h2>
+      <form id="lgForm" autocomplete="off">
+        <input id="lgName" list="lgList" placeholder="Item name…" aria-label="Item name" required>
+        <datalist id="lgList"></datalist>
+        <select id="lgCat" aria-label="Category"></select>
+        <select id="lgMode" aria-label="How to change the count">
+          <option value="set">New count</option>
+          <option value="add">Add</option>
+          <option value="sub">Remove</option>
+        </select>
+        <input id="lgQty" type="number" min="0" inputmode="numeric" placeholder="Count" aria-label="Count" required>
+        <button class="btn pri">Log</button>
+      </form>
+      <p class="msg" id="lgMsg" aria-live="polite"></p>
+    </section>
+    <div id="list"></div>
+  </main>
 </div>
 <div id="sideBack"></div>
 
@@ -345,9 +348,7 @@ function render(flashName){
   const row=i=>`<div class="row${qty(i.n)?"":" zero"}${i.n===flashName?" flash":""}" data-n="${esc(i.n)}">
     <div class="nm">${esc(i.n)}${sort!=="cat"?`<em>${esc(i.c)}</em>`:""}${baseNames.has(i.n)?"":`<em>custom</em>`}</div>
     <div class="qty">${baseNames.has(i.n)?"":`<button class="del" data-act="del" aria-label="Remove ${esc(i.n)}">✕</button>`}
-      <button data-act="-" aria-label="Remove one ${esc(i.n)}">−</button>
-      <input type="number" min="0" inputmode="numeric" value="${qty(i.n)}" aria-label="${esc(i.n)} quantity"${ro?" readonly":""}>
-      <button data-act="+" aria-label="Add one ${esc(i.n)}">+</button></div></div>`;
+      <span class="num">${qty(i.n)}</span></div></div>`;
   let html="";
   if(!list.length)html=`<p class="empty">No items match${only?" — try turning off “In stock only”":""}.</p>`;
   else if(sort==="cat"){for(const c of CATS){const g=list.filter(i=>i.c===c).sort((a,b)=>a.n.localeCompare(b.n));if(!g.length)continue;
@@ -366,8 +367,6 @@ $("#list").addEventListener("click",e=>{
   else if(b.dataset.act==="-")change(n,"delta",-1);
   else if(b.dataset.act==="del"){if(needEditor())removeItem(n)}
 });
-$("#list").addEventListener("change",e=>{if(e.target.matches(".qty input")&&!e.target.readOnly)change(e.target.closest(".row").dataset.n,"set",e.target.value)});
-$("#list").addEventListener("keydown",e=>{if(e.key==="Enter"&&e.target.matches(".qty input"))e.target.blur()});
 $("#tally").addEventListener("click",e=>{const b=e.target.closest("button");if(!b)return;const t=$("#tally");t.dataset.cat=t.dataset.cat===b.dataset.cat?"":b.dataset.cat;render();if(narrow())setSide(false)});
 // category sidebar: a collapsible column on wide screens, a slide-out drawer on phones
 const narrow=()=>matchMedia("(max-width:899px)").matches;
