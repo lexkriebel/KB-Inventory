@@ -39,6 +39,8 @@ h1{font:800 clamp(28px,4.4vw,42px)/1.05 Cinzel,serif;margin:0 0 6px;text-wrap:ba
 .qty button:hover,.btn:not(.pri):not(:disabled):hover{border-color:var(--purple)}
 body.side-off .layout{grid-template-columns:minmax(0,1fr)}body.side-off .side{display:none}
 #sideBack{display:none}
+#sideOpen{display:none;margin-top:12px;align-items:center;gap:6px;color:var(--purple);border-color:var(--purple)}
+body.side-off #sideOpen{display:inline-flex}
 @media(max-width:899px){
   .layout{grid-template-columns:minmax(0,1fr)}
   .side{position:fixed;z-index:30;top:0;left:0;bottom:0;margin:0;width:min(280px,84vw);max-height:none;border-radius:0 14px 14px 0;transform:translateX(-105%);transition:transform .2s;display:block!important;padding:12px 10px}
@@ -128,6 +130,7 @@ textarea{font:14px/1.4 ui-monospace,monospace;width:100%;min-height:220px;border
     <nav class="tally" id="tally"></nav>
   </aside>
   <main style="padding:8px 0 40px">
+    <button class="btn" id="sideOpen" aria-controls="side">» Show categories</button>
     <section class="logp edonly" aria-labelledby="lgTitle">
       <h2 id="lgTitle">Log inventory</h2>
       <form id="lgForm" autocomplete="off">
@@ -378,6 +381,7 @@ function setSide(open){
 }
 const sideIsOpen=()=>narrow()?document.body.classList.contains("side-open"):!document.body.classList.contains("side-off");
 $("#sideBtn").addEventListener("click",()=>setSide(!sideIsOpen()));
+$("#sideOpen").addEventListener("click",()=>{setSide(true);$("#sideClose").focus()});
 $("#sideClose").addEventListener("click",()=>{setSide(false);$("#sideBtn").focus()});
 $("#sideBack").addEventListener("click",()=>setSide(false));
 document.addEventListener("keydown",e=>{if(e.key==="Escape"&&narrow()&&sideIsOpen())setSide(false)});
